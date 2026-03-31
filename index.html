@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dashboard Supervisor — EFG Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f1117;--card:#181c27;--card2:#1e2335;--border:#272d42;
+  --accent:#3b82f6;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;
+  --yellow:#fbbf24;--text:#e8ecf4;--muted:#4a5568;--muted2:#6b7280;
+  --font:'Plus Jakarta Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:radial-gradient(ellipse at 50% 20%,#1e2335 0%,var(--bg) 65%)}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:36px 28px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.login-logo{width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,#3b82f6,#6366f1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;margin-bottom:20px}
+.login-box h1{font-size:22px;font-weight:800;margin-bottom:4px}
+.login-box .sub{font-size:12px;color:var(--muted2);margin-bottom:28px}
+.login-box label{display:block;font-size:10px;font-weight:700;letter-spacing:1.5px;
+  color:var(--muted2);text-transform:uppercase;margin-bottom:8px}
+.login-box input{width:100%;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:13px 15px;color:var(--text);font-family:var(--font);
+  font-size:14px;outline:none;letter-spacing:2px;margin-bottom:14px;transition:border-color .15s}
+.login-box input:focus{border-color:var(--accent)}
+.btn-login{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;
+  border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}
+.login-err{font-size:12px;color:var(--red);text-align:center;margin-top:12px;display:none}
+.login-err.show{display:block}
+
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 18px;
+  display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.logo{width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,#3b82f6,#6366f1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.topbar h1{font-size:13px;font-weight:700}
+.topbar p{font-size:10px;color:var(--muted2);margin-top:1px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.badge-sup{font-size:10px;font-weight:700;letter-spacing:1px;
+  border:1.5px solid var(--accent);color:var(--accent);
+  padding:4px 10px;border-radius:7px;text-transform:uppercase}
+.btn-out{font-size:11px;font-weight:600;color:var(--muted2);
+  border:1px solid var(--border);padding:6px 12px;border-radius:8px;
+  background:transparent;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-out:hover{color:var(--red);border-color:var(--red)}
+
+.main{padding:14px;max-width:520px;margin:0 auto;padding-bottom:40px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:9px 4px;background:transparent;border:none;border-radius:9px;
+  font-family:var(--font);font-size:10px;font-weight:700;color:var(--muted2);
+  cursor:pointer;letter-spacing:.3px;transition:all .2s;white-space:nowrap}
+.tab.on{background:var(--accent);color:#fff}
+
+/* VIEW SELECTOR */
+.view-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.view-btn{padding:7px 12px;background:var(--card2);border:1.5px solid var(--border);
+  border-radius:8px;font-family:var(--font);font-size:10px;font-weight:700;
+  color:var(--muted2);cursor:pointer;letter-spacing:.5px;transition:all .15s;white-space:nowrap}
+.view-btn.on{background:rgba(59,130,246,.12);border-color:var(--accent);color:var(--accent)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;align-items:stretch}
+.fbar-field{flex:1;background:var(--card);border:1.5px solid var(--border);
+  border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+.fbar-field label{font-size:10px;color:var(--muted2);white-space:nowrap;font-weight:600}
+.fbar-field input[type="date"],.fbar-field select{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;min-width:0}
+.fbar-field select option{background:var(--card2)}
+.fbar-field input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5);cursor:pointer}
+.btn-load{padding:10px 16px;background:var(--accent);color:#fff;border:none;
+  border-radius:9px;font-family:var(--font);font-size:11px;font-weight:700;
+  cursor:pointer;flex-shrink:0;transition:all .2s}
+.btn-load:hover{opacity:.9}
+
+/* SECTION TITLE */
+.stitle{font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--muted2);
+  text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:16px}
+.stitle::after{content:'';flex:1;height:1px;background:var(--border)}
+.stitle .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;
+  animation:blink 2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* STATUS CHIPS (ringkasan siapa sudah lapor) */
+.status-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.sch{display:flex;align-items:center;gap:5px;padding:5px 10px;
+  border-radius:8px;background:var(--card);border:1px solid var(--border)}
+.sch.done{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06)}
+.sch.done .sk{color:var(--green)}
+.sch.miss{border-color:var(--border)}
+.sch.miss .sk{color:var(--muted)}
+.sch .sk{font-size:11px;font-weight:800;letter-spacing:.5px}
+.sch .si{width:6px;height:6px;border-radius:50%;background:var(--border)}
+.sch.done .si{background:var(--green)}
+
+/* SALESMAN LIST (by day) */
+.sm-list{display:flex;flex-direction:column;gap:0}
+.sm-item{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:8px;overflow:hidden}
+.sm-item-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background .15s}
+.sm-item-head:hover{background:var(--card2)}
+.sm-kode{font-size:13px;font-weight:800;color:var(--accent);flex:0 0 44px;letter-spacing:.5px}
+.sm-name{font-size:12px;color:var(--muted2);flex:1}
+.sm-sales{font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;margin-right:6px}
+.sm-valid{font-size:11px;font-weight:700}
+.sm-valid.y{color:var(--green)}
+.sm-valid.n{color:var(--muted)}
+.sm-valid.rev{color:var(--red)}
+.sm-chev{font-size:10px;color:var(--muted2);transition:transform .2s;flex-shrink:0;margin-left:4px}
+.sm-chev.open{transform:rotate(180deg)}
+
+.sm-detail{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.sm-detail.open{max-height:800px}
+.sm-detail-inner{padding:12px 14px;border-top:1px solid var(--border);background:var(--card2)}
+
+.dsec-title{font-size:9px;font-weight:800;letter-spacing:2px;color:var(--orange);
+  text-transform:uppercase;margin-bottom:7px;margin-top:12px}
+.dsec-title:first-child{margin-top:0}
+.drow{display:flex;justify-content:space-between;padding:4px 0;
+  border-bottom:1px dashed var(--border);font-size:12px}
+.drow:last-child{border-bottom:none}
+.dk{color:var(--muted2)}
+.dv{font-weight:600;font-size:11px;text-align:right;max-width:55%}
+.dv.hi{color:var(--orange)}
+.dv.ok{color:var(--green)}
+.dv.bad{color:var(--red)}
+
+/* MTD TABLE */
+.mtd-table{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.mtd-thead{background:var(--card2);display:grid;gap:0;border-bottom:1px solid var(--border);padding:9px 12px}
+.mtd-row{display:grid;padding:10px 12px;border-bottom:1px dashed var(--border);align-items:center}
+.mtd-row:last-child{border-bottom:none}
+.mtd-row:hover{background:var(--card2)}
+.mtd-cell{font-size:11px;font-weight:600}
+.mtd-cell.hdr{color:var(--muted2);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.mtd-cell.kode{color:var(--accent);font-weight:800}
+.mtd-cell.num{text-align:right;font-family:'Courier New',monospace}
+.mtd-cell.pct{text-align:center;font-size:10px}
+.pct-bar{height:3px;border-radius:2px;background:var(--border);margin-top:3px}
+.pct-fill{height:100%;border-radius:2px;background:var(--green);max-width:100%}
+
+/* REKAP TOTAL CARD */
+.rekap-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.rekap-hd{background:var(--card2);padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px}
+.rekap-hd h3{font-size:14px;font-weight:800}
+.total-block{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:flex-end}
+.total-lbl{font-size:13px;font-weight:700;color:var(--green);line-height:1.4}
+.total-sub{font-size:11px;color:var(--muted2);margin-top:2px}
+.total-num{font-size:20px;font-weight:800;color:var(--green);text-align:right}
+.divider{height:1px;background:var(--border);margin:0 16px}
+.rrow{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;border-bottom:1px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rk{font-size:12px;color:var(--muted2)}
+.rk.ind{padding-left:14px;font-size:11px;color:var(--muted)}
+.rv{font-size:12px;font-weight:700}
+.rv.dim{color:var(--muted2)}
+
+.status-banner{margin:12px 16px;padding:12px 14px;border-radius:10px;
+  display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.status-banner.ok{background:rgba(34,197,94,.08);border:1.5px solid rgba(34,197,94,.2);color:var(--green)}
+.status-banner.warn{background:rgba(245,158,11,.08);border:1.5px solid rgba(245,158,11,.2);color:var(--orange)}
+.btn-wa{width:calc(100%-32px);margin:0 16px 14px;padding:13px;
+  background:linear-gradient(135deg,#1a7f37,#22c55e);color:#fff;border:none;
+  border-radius:10px;font-family:var(--font);font-size:12px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .2s;width:calc(100% - 32px)}
+.btn-wa:hover{opacity:.9}
+
+/* WA PREVIEW */
+.wa-prev{background:var(--card2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.wa-prev-hd{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;border-bottom:1px solid var(--border)}
+.wa-prev-hd span{font-size:11px;font-weight:600;color:var(--muted2)}
+.btn-copy{padding:6px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:7px;font-family:var(--font);font-size:10px;font-weight:700;
+  color:var(--text);cursor:pointer;transition:all .15s}
+.btn-copy:hover{border-color:var(--green);color:var(--green)}
+.wa-text{padding:14px;font-family:'Courier New',monospace;font-size:11px;
+  line-height:1.9;white-space:pre-wrap;word-break:break-word;
+  max-height:380px;overflow-y:auto;color:var(--text)}
+
+/* SIKLUS */
+.siklus-act{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);
+  border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.pdot{width:9px;height:9px;background:var(--green);border-radius:50%;flex-shrink:0;
+  animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}
+.fcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;margin-bottom:14px}
+.fcard h3{font-size:13px;font-weight:700;margin-bottom:13px}
+.fld{margin-bottom:11px}
+.fld label{display:block;font-size:9px;font-weight:700;letter-spacing:1.5px;
+  color:var(--muted2);text-transform:uppercase;margin-bottom:6px}
+.fld input{width:100%;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:8px;padding:9px 11px;color:var(--text);font-family:var(--font);
+  font-size:12px;outline:none;transition:border-color .15s}
+.fld input:focus{border-color:var(--accent)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-add{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;
+  border-radius:8px;font-family:var(--font);font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:1px}
+.btn-add:hover{opacity:.9}
+
+.sik-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:11px 14px;margin-bottom:7px;display:flex;justify-content:space-between}
+.si-nm{font-size:12px;font-weight:700}
+.si-dt{font-size:10px;color:var(--muted2);margin-top:2px}
+
+/* SPINNER */
+.spin-sm{display:inline-block;width:13px;height:13px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--green);color:#000;font-family:var(--font);font-size:11px;
+  font-weight:800;padding:10px 20px;border-radius:20px;z-index:200;
+  transition:transform .3s;white-space:nowrap;letter-spacing:.5px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red);color:#fff}
+
+.empty-st{text-align:center;padding:32px 20px}
+.empty-st .ico{font-size:36px;margin-bottom:10px}
+.empty-st p{font-size:12px;color:var(--muted2)}
+.hidden{display:none!important}
+.dash{display:none}
+.dash.on{display:block}
+
+/* POD OUTLET TABLE in supervisor */
+.pod-tbl{margin-top:10px;border-radius:8px;overflow:hidden;
+  border:1px solid rgba(239,68,68,.2)}
+.pod-tbl-head{display:grid;grid-template-columns:1fr 90px 1fr;
+  padding:7px 10px;background:rgba(239,68,68,.1);gap:6px}
+.pod-tbl-head span{font-size:9px;font-weight:800;letter-spacing:1px;
+  color:rgba(239,68,68,.8);text-transform:uppercase}
+.pod-tbl-row{display:grid;grid-template-columns:1fr 90px 1fr;
+  padding:7px 10px;gap:6px;border-top:1px dashed rgba(239,68,68,.15)}
+.pod-tbl-row:hover{background:rgba(239,68,68,.04)}
+.pod-tbl-row span{font-size:11px}
+.pod-tbl-row .p-toko{font-weight:700;color:var(--text)}
+.pod-tbl-row .p-jml{font-weight:700;color:var(--red);text-align:right;
+  font-family:'Courier New',monospace}
+.pod-tbl-row .p-ket{color:var(--muted2);font-size:10px}
+.pod-tbl-foot{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 10px;background:rgba(239,68,68,.08);border-top:1px solid rgba(239,68,68,.2)}
+.pod-tbl-foot .lbl{font-size:10px;font-weight:700;color:rgba(239,68,68,.8)}
+.pod-tbl-foot .val{font-size:12px;font-weight:800;color:var(--red);
+  font-family:'Courier New',monospace}
+.pod-none{font-size:11px;color:var(--muted2);font-style:italic;
+  padding:8px 0 2px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">RC</div>
+    <h1>Dashboard Supervisor</h1>
+    <p class="sub">Rekap 7 Salesman — Real-time</p>
+    <label>Password</label>
+    <input type="password" id="passInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">Masuk →</button>
+    <div class="login-err" id="loginErr">Password salah. Coba lagi.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dash" id="dash">
+  <div class="topbar">
+    <div class="logo">RC</div>
+    <div><h1>Dashboard Supervisor</h1><p>Rekap 7 Salesman — Real-time</p></div>
+    <div class="topbar-right">
+      <span class="badge-sup">SUPERVISOR</span>
+      <button class="btn-out" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab on"  onclick="switchTab('rekap',this)">📊 Rekap</button>
+      <button class="tab"     onclick="switchTab('mtd',this)">📈 MTD</button>
+      <button class="tab"     onclick="switchTab('salesman',this)">👥 Salesman</button>
+    </div>
+
+    <!-- ══════════ TAB: REKAP (By Day) ══════════ -->
+    <div id="tabRekap">
+      <div class="view-row">
+        <button class="view-btn on" id="vbDay"  onclick="setView('day',this)">📅 By Day</button>
+        <button class="view-btn"    id="vbSpv"  onclick="setView('spv',this)">👤 Lap. Supervisor</button>
+      </div>
+
+      <!-- Filter tanggal -->
+      <div class="filter-bar">
+        <div class="fbar-field">
+          <label>📅</label>
+          <input type="date" id="filterDate">
+        </div>
+        <div class="fbar-field" id="fbSiklus" style="display:none">
+          <label>Siklus</label>
+          <select id="filterSiklus"><option value="">Semua</option></select>
+        </div>
+        <button class="btn-load" onclick="loadData()">Tampilkan</button>
+      </div>
+
+      <!-- Status chips -->
+      <div class="stitle"><span class="dot"></span>Status Laporan</div>
+      <div class="status-chips" id="statusChips"></div>
+
+      <!-- BY DAY: list salesman -->
+      <div id="viewDay">
+        <div class="stitle"><span class="dot"></span>Detail Per Salesman</div>
+        <div id="smList">
+          <div class="empty-st"><div class="ico">📋</div><p>Klik Tampilkan untuk memuat</p></div>
+        </div>
+        <!-- Rekap total hari itu -->
+        <div id="rekapDayCard"></div>
+      </div>
+
+      <!-- BY SUPERVISOR: laporan harian supervisor -->
+      <div id="viewSpv" class="hidden">
+        <div class="stitle"><span class="dot"></span>Laporan Harian Supervisor</div>
+        <div id="spvReport"></div>
+        <div id="waSpvWrap"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: MTD ══════════ -->
+    <div id="tabMTD" class="hidden">
+      <div class="view-row">
+        <button class="view-btn on" id="vm1" onclick="setMTDView('salesman',this)">👥 MTD Salesman</button>
+        <button class="view-btn"    id="vm2" onclick="setMTDView('supervisor',this)">📊 MTD Supervisor</button>
+      </div>
+
+      <!-- Filter siklus untuk MTD -->
+      <div class="filter-bar">
+        <div class="fbar-field">
+          <label>Siklus</label>
+          <select id="mtdSiklus"><option value="">Siklus Aktif</option></select>
+        </div>
+        <button class="btn-load" onclick="loadMTD()">Tampilkan</button>
+      </div>
+
+      <!-- MTD Salesman -->
+      <div id="mtdSalesmanView">
+        <div class="stitle"><span class="dot"></span>MTD Per Salesman</div>
+        <div id="mtdSalesmanTable">
+          <div class="empty-st"><div class="ico">📈</div><p>Klik Tampilkan untuk memuat MTD</p></div>
+        </div>
+      </div>
+
+      <!-- MTD Supervisor -->
+      <div id="mtdSpvView" class="hidden">
+        <div class="stitle"><span class="dot"></span>MTD Laporan Supervisor</div>
+        <div id="mtdSpvTable">
+          <div class="empty-st"><div class="ico">📊</div><p>Klik Tampilkan untuk memuat</p></div>
+        </div>
+        <div id="waMTDWrap"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: SALESMAN ══════════ -->
+    <div id="tabSalesman" class="hidden">
+      <div class="stitle"><span class="dot"></span>Tambah Kode Salesman</div>
+      <div class="fcard" style="margin-bottom:14px">
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input type="text" id="newKodeInput"
+            style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+              padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;
+              font-weight:700;outline:none;letter-spacing:1px;text-transform:uppercase"
+            placeholder="cth: S025"
+            onkeydown="if(event.key==='Enter') tambahSalesman()">
+          <button class="btn-add" style="flex-shrink:0;padding:10px 18px"
+            onclick="tambahSalesman()">+ Tambah</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:8px">
+          Kode akan langsung aktif di form salesman.
+        </div>
+      </div>
+
+      <div class="stitle"><span class="dot"></span>Daftar Kode Salesman Aktif</div>
+      <div id="salesmanListWrap">
+        <div class="empty-st"><div class="ico">👥</div><p>Memuat daftar salesman...</p></div>
+      </div>
+    </div>
+    <div id="tabTarget" class="hidden">
+      <div class="siklus-act" style="margin-bottom:14px">
+        <div class="pdot"></div>
+        <div>
+          <div style="font-size:10px;color:rgba(34,197,94,.7);font-weight:700;letter-spacing:1px;text-transform:uppercase">Set target untuk siklus</div>
+          <div style="font-size:14px;font-weight:800;color:var(--green)" id="targetSiklusLabel">—</div>
+        </div>
+      </div>
+
+      <!-- Pilih salesman -->
+      <div class="fcard" style="margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);
+          text-transform:uppercase;margin-bottom:12px">Pilih Salesman</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px" id="tgtKodeGrid"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted2);
+          text-transform:uppercase;margin-bottom:10px">Input Target</div>
+        <div class="fld">
+          <label>EC Target (Tk)</label>
+          <input type="number" id="tgt_ec" placeholder="cth: 26">
+        </div>
+        <div class="fld">
+          <label>Item Target</label>
+          <input type="number" id="tgt_item" placeholder="cth: 8">
+        </div>
+        <div class="fld">
+          <label>Sales Target Month (Rp)</label>
+          <input type="number" id="tgt_sales_month" placeholder="cth: 50000000">
+        </div>
+        <div class="fld">
+          <label>Jumlah Hari Siklus</label>
+          <input type="number" id="tgt_hari" placeholder="cth: 26">
+        </div>
+        <div class="fld" style="margin-bottom:0">
+          <label>OD Target / EAR (Rp)</label>
+          <input type="number" id="tgt_od" placeholder="cth: 100000000">
+        </div>
+        <!-- Preview Target Day -->
+        <div id="tgtPreviewDay" style="display:none;background:rgba(245,158,11,.07);
+          border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:9px 12px;
+          margin-top:10px;font-size:12px;color:var(--orange)">
+          <span style="font-weight:700">Target Day (auto):</span>
+          <span id="tgtDayVal">—</span>
+        </div>
+      </div>
+
+      <div style="color:var(--red);font-size:12px;margin-bottom:8px;display:none" id="tgtErr"></div>
+      <button class="btn-add" onclick="saveTarget()" style="margin-bottom:16px">💾 Simpan Target Salesman</button>
+
+      <!-- Daftar target tersimpan -->
+      <div class="stitle"><span class="dot"></span>Target Tersimpan Siklus Ini</div>
+      <div id="targetList">
+        <div class="empty-st"><div class="ico">🎯</div><p>Belum ada target. Pilih salesman dan isi target.</p></div>
+      </div>
+    </div>
+
+    <!-- ══════════ TAB: SIKLUS ══════════ -->
+    <div id="tabSiklus" class="hidden">
+      <div class="siklus-act">
+        <div class="pdot"></div>
+        <div>
+          <div style="font-size:10px;color:rgba(34,197,94,.7);font-weight:700;letter-spacing:1px;text-transform:uppercase">Siklus Aktif</div>
+          <div style="font-size:15px;font-weight:800;color:var(--green)" id="siklusAktifVal">Memuat...</div>
+        </div>
+      </div>
+      <div class="fcard">
+        <h3>+ Tambah Siklus Baru</h3>
+        <div class="fld"><label>Nama Siklus</label>
+          <input type="text" id="newNama" placeholder="cth: April 2026"></div>
+        <div class="row2">
+          <div class="fld"><label>Tanggal Mulai</label><input type="date" id="newMulai"></div>
+          <div class="fld"><label>Tanggal Akhir</label><input type="date" id="newAkhir"></div>
+        </div>
+        <button class="btn-add" onclick="saveSiklus()">Simpan Siklus</button>
+      </div>
+      <div class="stitle"><span class="dot"></span>Riwayat Siklus</div>
+      <div id="siklusList"><div class="empty-st"><div class="ico">📅</div><p>Belum ada siklus</p></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════
+const GAS_URL = 'GANTI_URL_GOOGLE_APPS_SCRIPT_DISINI';
+// ═══════════════════════════════════
+
+const KODE   = ['S005','S016','S017','S018','S019','S120','S121'];
+const HARI   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const EC_TGT = 26, ITEM_TGT = 8;
+
+let pw = '';
+let allDataCache = [];
+let siklusCache  = [];
+let siklusAktif  = '';
+let currentView  = 'day';
+let mtdView      = 'salesman';
+let waTextCache  = '';
+
+// ── INIT ──
+(function(){
+  const saved = sessionStorage.getItem('spv_pw');
+  if(saved){ pw = saved; showDash(); }
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('filterDate').value = today;
+})();
+
+async function doLogin(){
+  const input = document.getElementById('passInput').value;
+  if(!input) return;
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'check_password',password:input})});
+    const d = await r.json();
+    if(d.ok){ pw=input; sessionStorage.setItem('spv_pw',pw); showDash(); }
+    else document.getElementById('loginErr').classList.add('show');
+  }catch(e){
+    document.getElementById('loginErr').textContent='Koneksi gagal.';
+    document.getElementById('loginErr').classList.add('show');
+  }
+}
+function showDash(){
+  document.getElementById('loginWrap').classList.add('hidden');
+  document.getElementById('dash').classList.add('on');
+  loadSiklus();
+  loadData();
+}
+function doLogout(){ sessionStorage.removeItem('spv_pw'); location.reload(); }
+
+function switchTab(t, btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['tabRekap','tabMTD','tabSalesman'].forEach(id=>
+    document.getElementById(id).classList.toggle('hidden',
+      id !== 'tab'+t.charAt(0).toUpperCase()+t.slice(1)));
+  if(t === 'salesman') loadSalesmanList();
+}
+
+function setView(v, btn){
+  currentView = v;
+  document.querySelectorAll('#tabRekap .view-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('viewDay').classList.toggle('hidden', v!=='day');
+  document.getElementById('viewSpv').classList.toggle('hidden', v!=='spv');
+  // Re-render based on current cache
+  if(allDataCache.length || v==='spv') renderAll(allDataCache);
+}
+
+function setMTDView(v, btn){
+  mtdView = v;
+  document.querySelectorAll('#tabMTD .view-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('mtdSalesmanView').classList.toggle('hidden', v!=='salesman');
+  document.getElementById('mtdSpvView').classList.toggle('hidden', v!=='supervisor');
+}
+
+// ── LOAD DATA ──
+async function loadData(){
+  const tgl = document.getElementById('filterDate').value;
+  setLoading('smList');
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_rekap',password:pw,tanggal:tgl})});
+    const d = await r.json();
+    if(!d.ok){ showToast(d.msg,true); return; }
+    allDataCache = d.data||[];
+    siklusAktif  = d.siklus_aktif||'';
+    renderAll(allDataCache);
+  }catch(e){ showToast('Koneksi gagal',true); }
+}
+
+async function loadMTD(){
+  const sik = document.getElementById('mtdSiklus').value;
+  setLoading('mtdSalesmanTable'); setLoading('mtdSpvTable');
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_rekap',password:pw,siklus:sik||null})});
+    const d = await r.json();
+    if(!d.ok){ showToast(d.msg,true); return; }
+    const data = d.data||[];
+    renderMTDSalesman(data, sik);
+    renderMTDSupervisor(data, sik);
+  }catch(e){ showToast('Koneksi gagal',true); }
+}
+
+function setLoading(id){
+  const el = document.getElementById(id);
+  if(el) el.innerHTML='<div class="empty-st" style="padding:20px"><span class="spin-sm"></span><span style="color:var(--muted2);font-size:12px">Memuat...</span></div>';
+}
+
+// ── RENDER ALL ──
+function renderAll(data){
+  renderStatusChips(data);
+  if(currentView === 'day'){
+    renderByDay(data);
+    renderRekapDay(data);
+  } else {
+    renderSpvReport(data);
+  }
+}
+
+// ── STATUS CHIPS ──
+function renderStatusChips(data){
+  const tgl = document.getElementById('filterDate').value;
+  const sudah = new Set(data.map(r => r['Kode Salesman']));
+  const c = document.getElementById('statusChips');
+  c.innerHTML = '';
+  KODE.forEach(k => {
+    const el = document.createElement('div');
+    el.className = 'sch ' + (sudah.has(k) ? 'done' : 'miss');
+    el.innerHTML = `<span class="sk">${k}</span><span class="si"></span>`;
+    c.appendChild(el);
+  });
+}
+
+// ── BY DAY: LIST SALESMAN ──
+function renderByDay(data){
+  const map = latestPerKode(data);
+  const list = document.getElementById('smList');
+  list.innerHTML = '';
+
+  if(!Object.keys(map).length){
+    list.innerHTML='<div class="empty-st"><div class="ico">📭</div><p>Belum ada laporan pada tanggal ini</p></div>';
+    return;
+  }
+
+  KODE.forEach(k => {
+    const r = map[k];
+    const wrap = document.createElement('div');
+    wrap.className = 'sm-item';
+    const isValid = r ? (r['Is Valid']==='true'||r['Is Valid']===true) : false;
+    const salesMTD = r ? fmtRp(r['Sales MTD Val']||0) : '';
+
+    wrap.innerHTML = `
+      <div class="sm-item-head" onclick="toggleDetail(this,'det_${k}')">
+        <span class="sm-kode">${k}</span>
+        <span class="sm-name">Salesman ${k}</span>
+        ${salesMTD?`<span class="sm-sales">${salesMTD}</span>`:''}
+        <span class="sm-valid ${r?(isValid?'y':'rev'):'n'}">${r?(isValid?'✓ Valid':'⚠ Revisi'):'— Belum'}</span>
+        ${r?'<span class="sm-chev" id="chev_'+k+'">▾</span>':''}
+      </div>
+      ${r?`<div class="sm-detail" id="det_${k}">${buildDetail(r)}</div>`:''}`;
+    list.appendChild(wrap);
+  });
+}
+
+function toggleDetail(head, detId){
+  const det  = document.getElementById(detId);
+  const chev = document.getElementById(detId.replace('det_','chev_'));
+  if(!det) return;
+  det.classList.toggle('open');
+  if(chev) chev.classList.toggle('open');
+}
+
+function buildDetail(r){
+  const ecTgt = EC_TGT, itTgt = ITEM_TGT;
+  const ecHiPct  = pct(r['EC Hi Tk'], ecTgt);
+  const ecMTDPct = pct(r['EC MTD Tk'], ecTgt);
+  return `<div class="sm-detail-inner">
+    <div class="dsec-title">EC (Target: ${ecTgt} Tk)</div>
+    <div class="drow"><span class="dk">Call Day</span><span class="dv">${r['EC Call Day']||'-'} Tk</span></div>
+    <div class="drow"><span class="dk">Call MTD</span><span class="dv">${r['EC Call MTD']||'-'} Tk</span></div>
+    <div class="drow"><span class="dk">EC Hi</span><span class="dv hi">${r['EC Hi Tk']||'-'} Tk / ${r['EC Hi %']||ecHiPct}</span></div>
+    <div class="drow"><span class="dk">EC MTD</span><span class="dv ok">${r['EC MTD Tk']||'-'} Tk / ${r['EC MTD %']||ecMTDPct}</span></div>
+    <div class="dsec-title">ITEM (Target: ${itTgt})</div>
+    <div class="drow"><span class="dk">Total Item Hi</span><span class="dv">${r['Item Total Hi']||'-'}</span></div>
+    <div class="drow"><span class="dk">Item Hi (÷EC)</span><span class="dv hi">${r['Item Hi Val']||'-'} — ${r['Item Hi Info']||'-'}</span></div>
+    <div class="drow"><span class="dk">Total Item MTD</span><span class="dv">${r['Item Total MTD']||'-'}</span></div>
+    <div class="drow"><span class="dk">Item MTD (÷EC)</span><span class="dv ok">${r['Item MTD Val']||'-'} — ${r['Item MTD Info']||'-'}</span></div>
+    <div class="dsec-title">SALES</div>
+    <div class="drow"><span class="dk">Target Month</span><span class="dv">Rp ${r['Sales Target Month']||'-'}</span></div>
+    <div class="drow"><span class="dk">Target YTD Month</span><span class="dv" style="color:var(--orange)">Rp ${r['Sales Target YTD Month']||r['Sales Target Month']||'-'}</span></div>
+    <div class="drow"><span class="dk">Hari Siklus</span><span class="dv">${r['Sales Hari Siklus']||'-'} hari</span></div>
+    <div class="drow"><span class="dk">Target Day</span><span class="dv" style="color:var(--orange)">Rp ${r['Sales Target Day']||'-'}</span></div>
+    <div class="drow"><span class="dk">Sales Hi</span><span class="dv hi">Rp ${r['Sales Hi Val']||'-'} / ${r['Sales Hi %']||'-'}</span></div>
+    <div class="drow"><span class="dk">Sales MTD</span><span class="dv ok">Rp ${r['Sales MTD Val']||'-'} / ${r['Sales MTD %']||'-'}</span></div>
+    <div class="drow"><span class="dk">Growth YTD</span><span class="dv">Rp ${r['Sales YTD Val']||'-'} / ${r['Sales YTD %']||'-'}</span></div>
+    <div class="dsec-title">OD / COLLECTION</div>
+    <div class="drow"><span class="dk">Target Coll/EAR</span><span class="dv">Rp ${r['OD Target']||'-'}</span></div>
+    <div class="drow"><span class="dk">Realisasi/CD</span><span class="dv ok">Rp ${r['OD Realisasi']||'-'}</span></div>
+    <div class="drow"><span class="dk">Collection%</span><span class="dv ok">${r['OD Collection %']||'-'}</span></div>
+    <div class="drow"><span class="dk">OD in Value</span><span class="dv" style="color:var(--orange)">Rp ${r['OD Value']||'-'}</span></div>
+    <div class="drow"><span class="dk">↳ Over Due%</span><span class="dv bad">${r['OD Overdue %']||'-'}</span></div>
+    ${buildPodTable(r['POD Outlets JSON']||'[]')}
+    <div style="margin-top:8px;font-size:10px;color:var(--muted2)">
+      Supervisor: ${r['Supervisor']||'-'} | Siklus: ${r['Siklus']||'-'}
+    </div>
+  </div>`;
+}
+
+// ── REKAP TOTAL HARI ──
+function renderRekapDay(data){
+  const map   = latestPerKode(data);
+  const tgl   = document.getElementById('filterDate').value;
+  const dt    = tgl ? new Date(tgl+'T00:00:00') : new Date();
+  const tglFmt = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const n     = Object.keys(map).length;
+
+  let totSalesMTD=0, totODTarget=0, totODReal=0;
+  Object.values(map).forEach(r=>{
+    totSalesMTD += parseN(r['Sales MTD Val']);
+    totODTarget += parseN(r['OD Target']);
+    totODReal   += parseN(r['OD Realisasi']);
+  });
+  const avgColl = totODTarget>0 ? ((totODReal/totODTarget)*100).toFixed(1) : '-';
+
+  const card = document.getElementById('rekapDayCard');
+  card.innerHTML = `
+    <div class="rekap-card">
+      <div class="rekap-hd"><span style="width:7px;height:7px;background:var(--accent);border-radius:50%;display:inline-block"></span>
+        <h3>Rekap Total ${KODE.length} Salesman</h3></div>
+      <div class="total-block">
+        <div><div class="total-lbl">Total Sales MTD<br>(${n}/${KODE.length} Salesman)</div>
+          <div class="total-sub">${tglFmt}</div></div>
+        <div class="total-num">Rp<br>${fmtAngka(totSalesMTD)}</div>
+      </div>
+      <div class="divider"></div>
+      <div class="rrow"><span class="rk">Total OD Target/EAR</span><span class="rv">Rp ${fmtAngka(totODTarget)}</span></div>
+      <div class="rrow"><span class="rk">Total Realisasi Coll</span><span class="rv">Rp ${fmtAngka(totODReal)}</span></div>
+      <div class="rrow"><span class="rk">Rata-rata Collection</span><span class="rv">${avgColl}%</span></div>
+      <div class="status-banner ${n===KODE.length?'ok':'warn'}">
+        ${n===KODE.length?'✅ SEMUA DATA VALID — Rekap siap dikirim':'⚠ '+n+'/'+KODE.length+' salesman sudah laporan'}
+      </div>
+      <button class="btn-wa" onclick="genWADay()">📋 Generate Rekap WA</button>
+    </div>
+    <div id="waDayWrap"></div>`;
+}
+
+// ── SPV REPORT (By Day) ──
+function renderSpvReport(data){
+  const map    = latestPerKode(data);
+  const tgl    = document.getElementById('filterDate').value;
+  const dt     = tgl ? new Date(tgl+'T00:00:00') : new Date();
+  const tglFmt = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  const sv = Object.values(map)[0]?.['Supervisor']||'-';
+  const n  = Object.keys(map).length;
+
+  let totSalesHi=0, totSalesMTD=0, totODTarget=0, totODReal=0, totECHi=0, totECMTD=0;
+  Object.values(map).forEach(r=>{
+    totSalesHi  += parseN(r['Sales Hi Val']);
+    totSalesMTD += parseN(r['Sales MTD Val']);
+    totODTarget += parseN(r['OD Target']);
+    totODReal   += parseN(r['OD Realisasi']);
+    totECHi     += parseN(r['EC Hi Tk']);
+    totECMTD    += parseN(r['EC MTD Tk']);
+  });
+
+  const spvDiv = document.getElementById('spvReport');
+  spvDiv.innerHTML = `
+    <div class="rekap-card">
+      <div class="rekap-hd"><span style="width:7px;height:7px;background:var(--orange);border-radius:50%;display:inline-block"></span>
+        <h3>Laporan Supervisor — ${tglFmt}</h3></div>
+      <div class="rrow"><span class="rk">Sales Supervisor</span><span class="rv">${sv}</span></div>
+      <div class="rrow"><span class="rk">Salesman laporan</span><span class="rv">${n}/${KODE.length}</span></div>
+      <div class="rrow"><span class="rk">Siklus</span><span class="rv">${siklusAktif}</span></div>
+      <div class="divider"></div>
+      <div class="rrow"><span class="rk">Total EC Hi</span><span class="rv">${totECHi} Tk / ${pct(totECHi,EC_TGT*n)}</span></div>
+      <div class="rrow"><span class="rk">Total EC MTD</span><span class="rv">${totECMTD} Tk / ${pct(totECMTD,EC_TGT*n)}</span></div>
+      <div class="divider"></div>
+      <div class="rrow"><span class="rk">Total Sales Hi</span><span class="rv">Rp ${fmtAngka(totSalesHi)}</span></div>
+      <div class="rrow"><span class="rk">Total Sales MTD</span><span class="rv">Rp ${fmtAngka(totSalesMTD)}</span></div>
+      <div class="divider"></div>
+      <div class="rrow"><span class="rk">Total OD Target/EAR</span><span class="rv">Rp ${fmtAngka(totODTarget)}</span></div>
+      <div class="rrow"><span class="rk">Total Realisasi/CD</span><span class="rv">Rp ${fmtAngka(totODReal)}</span></div>
+      <div class="rrow"><span class="rk">Avg Collection</span><span class="rv">${totODTarget>0?((totODReal/totODTarget)*100).toFixed(1):'-'}%</span></div>
+      <button class="btn-wa" style="margin:12px 16px 14px;width:calc(100% - 32px)" onclick="genWASpv()">📋 Generate WA Supervisor</button>
+    </div>`;
+}
+
+// ── MTD SALESMAN TABLE ──
+function renderMTDSalesman(data, sik){
+  const map = latestPerKode(data); // latest per kode dalam range siklus
+  // Untuk MTD, aggregate semua baris per kode (ambil nilai MTD terbaru)
+  const tbl = document.getElementById('mtdSalesmanTable');
+
+  if(!Object.keys(map).length){
+    tbl.innerHTML='<div class="empty-st"><div class="ico">📭</div><p>Belum ada data MTD</p></div>';
+    return;
+  }
+
+  // Susun tabel
+  let html = `<div class="mtd-table">
+    <div class="mtd-row" style="grid-template-columns:52px 1fr 1fr 60px 60px;background:var(--card2);border-bottom:1px solid var(--border)">
+      <span class="mtd-cell hdr">Kode</span>
+      <span class="mtd-cell hdr">Sales MTD</span>
+      <span class="mtd-cell hdr">Coll/CD</span>
+      <span class="mtd-cell hdr" style="text-align:center">EC%</span>
+      <span class="mtd-cell hdr" style="text-align:center">Coll%</span>
+    </div>`;
+
+  let totSales=0, totColl=0, totTgt=0;
+  KODE.forEach(k=>{
+    const r = map[k];
+    if(!r){ html+=`<div class="mtd-row" style="grid-template-columns:52px 1fr 1fr 60px 60px">
+      <span class="mtd-cell kode">${k}</span>
+      <span class="mtd-cell" style="color:var(--muted)">—</span>
+      <span class="mtd-cell" style="color:var(--muted)">—</span>
+      <span class="mtd-cell">—</span><span class="mtd-cell">—</span></div>`; return; }
+
+    const sm = parseN(r['Sales MTD Val']);
+    const cl = parseN(r['OD Realisasi']);
+    const tg = parseN(r['OD Target']);
+    const ecPct = parseFloat(r['EC MTD %'])||0;
+    const clPct = tg>0?((cl/tg)*100):0;
+    totSales+=sm; totColl+=cl; totTgt+=tg;
+
+    html+=`<div class="mtd-row" style="grid-template-columns:52px 1fr 1fr 60px 60px">
+      <span class="mtd-cell kode">${k}</span>
+      <span class="mtd-cell num">Rp ${fmtAngka(sm)}</span>
+      <span class="mtd-cell num">Rp ${fmtAngka(cl)}</span>
+      <span class="mtd-cell" style="text-align:center;font-size:10px;color:${ecPct>=85?'var(--green)':'var(--orange)'}">
+        ${ecPct.toFixed(0)}%
+        <div class="pct-bar"><div class="pct-fill" style="width:${Math.min(ecPct,100)}%;background:${ecPct>=85?'var(--green)':'var(--orange)'}"></div></div>
+      </span>
+      <span class="mtd-cell" style="text-align:center;font-size:10px;color:${clPct>=80?'var(--green)':'var(--orange)'}">
+        ${clPct.toFixed(0)}%
+        <div class="pct-bar"><div class="pct-fill" style="width:${Math.min(clPct,100)}%;background:${clPct>=80?'var(--green)':'var(--orange)'}"></div></div>
+      </span>
+    </div>`;
+  });
+
+  // TOTAL ROW
+  const totClPct = totTgt>0?((totColl/totTgt)*100).toFixed(1):'-';
+  html+=`<div class="mtd-row" style="grid-template-columns:52px 1fr 1fr 60px 60px;background:var(--card2);border-top:1px solid var(--border)">
+    <span class="mtd-cell" style="color:var(--orange);font-weight:800;font-size:10px">TOTAL</span>
+    <span class="mtd-cell num" style="color:var(--green);font-weight:800">Rp ${fmtAngka(totSales)}</span>
+    <span class="mtd-cell num" style="color:var(--green);font-weight:800">Rp ${fmtAngka(totColl)}</span>
+    <span class="mtd-cell"></span>
+    <span class="mtd-cell" style="text-align:center;font-size:10px;color:var(--green);font-weight:800">${totClPct}%</span>
+  </div></div>`;
+
+  tbl.innerHTML = html;
+}
+
+// ── MTD SUPERVISOR ──
+function renderMTDSupervisor(data, sik){
+  // Group by tanggal → per hari hitung total
+  const byDate = {};
+  data.forEach(r=>{
+    const d = r['Tanggal']||'';
+    if(!d) return;
+    if(!byDate[d]) byDate[d]=[];
+    byDate[d].push(r);
+  });
+
+  const tbl = document.getElementById('mtdSpvTable');
+  const dates = Object.keys(byDate).sort();
+
+  if(!dates.length){
+    tbl.innerHTML='<div class="empty-st"><div class="ico">📊</div><p>Belum ada data</p></div>'; return;
+  }
+
+  let html=`<div class="mtd-table">
+    <div class="mtd-row" style="grid-template-columns:80px 1fr 1fr 60px;background:var(--card2);border-bottom:1px solid var(--border)">
+      <span class="mtd-cell hdr">Tanggal</span>
+      <span class="mtd-cell hdr">Sales Hi</span>
+      <span class="mtd-cell hdr">Coll/CD</span>
+      <span class="mtd-cell hdr" style="text-align:center">Slsm</span>
+    </div>`;
+
+  let cumSalesHi=0, cumColl=0;
+  dates.forEach(d=>{
+    const rows = byDate[d];
+    const map  = latestPerKode(rows);
+    let dayHi=0, dayColl=0;
+    Object.values(map).forEach(r=>{ dayHi+=parseN(r['Sales Hi Val']); dayColl+=parseN(r['OD Realisasi']); });
+    cumSalesHi+=dayHi; cumColl+=dayColl;
+    const n = Object.keys(map).length;
+    const dObj = new Date(d+'T00:00:00');
+    const dFmt = dObj.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit'});
+    html+=`<div class="mtd-row" style="grid-template-columns:80px 1fr 1fr 60px">
+      <span class="mtd-cell" style="font-size:10px;font-family:'Courier New'">${dFmt}</span>
+      <span class="mtd-cell num" style="font-size:11px">Rp ${fmtAngka(dayHi)}</span>
+      <span class="mtd-cell num" style="font-size:11px">Rp ${fmtAngka(dayColl)}</span>
+      <span class="mtd-cell" style="text-align:center;font-size:11px;color:${n===KODE.length?'var(--green)':'var(--orange)'}">${n}/${KODE.length}</span>
+    </div>`;
+  });
+
+  html+=`<div class="mtd-row" style="grid-template-columns:80px 1fr 1fr 60px;background:var(--card2);border-top:1px solid var(--border)">
+    <span class="mtd-cell" style="color:var(--orange);font-weight:800;font-size:10px">MTD</span>
+    <span class="mtd-cell num" style="color:var(--green);font-weight:800">Rp ${fmtAngka(cumSalesHi)}</span>
+    <span class="mtd-cell num" style="color:var(--green);font-weight:800">Rp ${fmtAngka(cumColl)}</span>
+    <span class="mtd-cell"></span>
+  </div></div>`;
+
+  html += `<div style="margin-top:12px"></div>
+    <button class="btn-wa" style="width:100%;margin:0 0 14px" onclick="genWAMTD()">📋 Generate WA MTD Supervisor</button>`;
+
+  tbl.innerHTML = html;
+}
+
+// ── GENERATE WA ──
+function genWADay(){
+  const map  = latestPerKode(allDataCache);
+  const tgl  = document.getElementById('filterDate').value;
+  const dt   = tgl ? new Date(tgl+'T00:00:00') : new Date();
+  const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const sv   = Object.values(map)[0]?.['Supervisor']||'-';
+  const n    = Object.keys(map).length;
+
+  let totSalesMTD=0, totODTarget=0, totODReal=0;
+  Object.values(map).forEach(r=>{ totSalesMTD+=parseN(r['Sales MTD Val']); totODTarget+=parseN(r['OD Target']); totODReal+=parseN(r['OD Realisasi']); });
+
+  let lines='';
+  KODE.forEach(k=>{
+    const r=map[k];
+    if(r){
+      // POD outlets
+      let podLines = '';
+      try{
+        const pods = JSON.parse(r['POD Outlets JSON']||'[]');
+        if(pods.length > 0){
+          podLines = '\n      POD (' + pods.length + ' outlet):';
+          pods.forEach(p => {
+            podLines += `\n        • ${p.toko} — Rp ${fmtAngka(parseFloat(p.jumlah)||0)}`;
+            if(p.keterangan) podLines += ` (${p.keterangan})`;
+          });
+        }
+      }catch(e){}
+
+      lines+=`\n*${k}*  Sales MTD: Rp ${r['Sales MTD Val']||'-'} (${r['Sales MTD %']||'-'}%)`+
+             `\n      EC Hi: ${r['EC Hi Tk']||'-'} Tk | EC MTD: ${r['EC MTD Tk']||'-'} Tk`+
+             `\n      Coll/CD: Rp ${r['OD Realisasi']||'-'} | OD: ${r['OD Overdue %']||'-'}%`+
+             podLines;
+    }
+    else  lines+=`\n*${k}*  _(belum laporan)_`;
+  });
+
+  const avgColl = totODTarget>0?((totODReal/totODTarget)*100).toFixed(1):'-';
+  const teks = `*Laporan Produktivitas, Sales & Collection OD*\n`+
+    `Sales Supervisor : ${sv}\n`+
+    `Tanggal : ${tglS}\n`+
+    `Laporan (${n}/${KODE.length} Salesman)\n`+
+    `${lines}\n\n`+
+    `━━━━━━━━━━━━━━━━━\n`+
+    `*REKAP TOTAL*\n`+
+    `➫ Total Sales MTD : Rp ${fmtAngka(totSalesMTD)}\n`+
+    `➫ OD Target/EAR  : Rp ${fmtAngka(totODTarget)}\n`+
+    `➫ Realisasi/CD    : Rp ${fmtAngka(totODReal)}\n`+
+    `➫ Avg Collection  : ${avgColl}%\n`+
+    `Siklus : ${siklusAktif||'-'}\n\n`+
+    `_Terimakasih_ 🙏`;
+
+  showWAPreview('waDayWrap', teks);
+}
+
+function genWASpv(){
+  const map  = latestPerKode(allDataCache);
+  const tgl  = document.getElementById('filterDate').value;
+  const dt   = tgl ? new Date(tgl+'T00:00:00') : new Date();
+  const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const sv   = Object.values(map)[0]?.['Supervisor']||'-';
+  const n    = Object.keys(map).length;
+
+  let totSalesHi=0, totSalesMTD=0, totODTarget=0, totODReal=0, totECHi=0, totECMTD=0;
+  Object.values(map).forEach(r=>{
+    totSalesHi+=parseN(r['Sales Hi Val']); totSalesMTD+=parseN(r['Sales MTD Val']);
+    totODTarget+=parseN(r['OD Target']); totODReal+=parseN(r['OD Realisasi']);
+    totECHi+=parseN(r['EC Hi Tk']); totECMTD+=parseN(r['EC MTD Tk']);
+  });
+
+  const teks = `*Laporan Harian Supervisor*\n`+
+    `Sales Supervisor : ${sv}\n`+
+    `Tanggal : ${tglS}\n`+
+    `Siklus : ${siklusAktif||'-'}\n`+
+    `Salesman laporan : ${n}/${KODE.length}\n\n`+
+    `*EC*\n`+
+    `   Total EC Hi  : ${totECHi} Tk\n`+
+    `   Total EC MTD : ${totECMTD} Tk\n\n`+
+    `*SALES*\n`+
+    `   Total Sales Hi  : Rp ${fmtAngka(totSalesHi)}\n`+
+    `   Total Sales MTD : Rp ${fmtAngka(totSalesMTD)}\n\n`+
+    `*OD / COLLECTION*\n`+
+    `   Target Coll/EAR : Rp ${fmtAngka(totODTarget)}\n`+
+    `   Realisasi/CD    : Rp ${fmtAngka(totODReal)}\n`+
+    `   Avg Collection  : ${totODTarget>0?((totODReal/totODTarget)*100).toFixed(1):'-'}%\n\n`+
+    `_Terimakasih_ 🙏`;
+
+  showWAPreview('waSpvWrap', teks);
+}
+
+function genWAMTD(){
+  const teks = document.getElementById('mtdSpvTable')?.innerText || '';
+  // Build proper MTD WA text
+  const sik = document.getElementById('mtdSiklus').value;
+  const t = `*Laporan MTD Supervisor*\nSiklus : ${sik||siklusAktif||'-'}\n\n`+
+    `(Lihat detail di tabel MTD Supervisor dashboard)\n\n_Terimakasih_ 🙏`;
+  showWAPreview('waMTDWrap', t);
+}
+
+function showWAPreview(wrapId, teks){
+  waTextCache = teks;
+  const wrap = document.getElementById(wrapId);
+  wrap.innerHTML = `<div class="wa-prev">
+    <div class="wa-prev-hd"><span>📋 Preview Teks WA</span><button class="btn-copy" onclick="copyWA()">Copy</button></div>
+    <div class="wa-text">${teks.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+  </div>`;
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyWA(){
+  if(!waTextCache) return;
+  if(navigator.clipboard){ navigator.clipboard.writeText(waTextCache).then(()=>showToast('✓ Teks disalin!')); }
+  else{
+    const ta=document.createElement('textarea'); ta.value=waTextCache;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); showToast('✓ Teks disalin!');
+  }
+}
+
+// ── SIKLUS ──
+async function loadSiklus(){
+  try{
+    const r = await fetch(GAS_URL+'?action=get_siklus');
+    const d = await r.json();
+    if(!d.ok) return;
+    siklusAktif = d.aktif||'';
+    document.getElementById('siklusAktifVal').textContent = siklusAktif||'Belum ada';
+
+    const sels = [document.getElementById('filterSiklus'), document.getElementById('mtdSiklus')];
+    siklusCache = d.list||[];
+    sels.forEach(sel=>{
+      const cur = sel.value;
+      while(sel.options.length>1) sel.remove(1);
+      siklusCache.forEach(s=>{ const o=new Option(s[0],s[0]); sel.appendChild(o); });
+      sel.value = cur;
+    });
+
+    // Update riwayat
+    const list = document.getElementById('siklusList');
+    list.innerHTML='';
+    [...siklusCache].reverse().forEach(s=>{
+      const el=document.createElement('div'); el.className='sik-item';
+      el.innerHTML=`<div><div class="si-nm">${s[0]}</div><div class="si-dt">${s[1]} → ${s[2]}</div></div>`;
+      list.appendChild(el);
+    });
+    if(!siklusCache.length) list.innerHTML='<div class="empty-st"><div class="ico">📅</div><p>Belum ada siklus</p></div>';
+  }catch(e){}
+}
+
+async function saveSiklus(){
+  const nama=document.getElementById('newNama').value.trim();
+  const mulai=document.getElementById('newMulai').value;
+  const akhir=document.getElementById('newAkhir').value;
+  if(!nama||!mulai||!akhir){ showToast('Isi semua field siklus',true); return; }
+  if(mulai>akhir){ showToast('Tanggal mulai harus lebih awal',true); return; }
+  try{
+    const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'set_siklus',password:pw,nama_siklus:nama,tgl_mulai:mulai,tgl_akhir:akhir})});
+    const d=await r.json();
+    if(d.ok){ showToast('✓ '+d.msg);
+      document.getElementById('newNama').value='';
+      document.getElementById('newMulai').value='';
+      document.getElementById('newAkhir').value='';
+      loadSiklus(); }
+    else showToast(d.msg,true);
+  }catch(e){ showToast('Koneksi gagal',true); }
+}
+
+// ── HELPERS ──
+function latestPerKode(data){
+  const map={};
+  data.forEach(r=>{
+    const k=r['Kode Salesman'];
+    if(!map[k]||new Date(r['Timestamp'])>new Date(map[k]['Timestamp'])) map[k]=r;
+  });
+  return map;
+}
+function parseN(s){ return parseFloat(String(s||'').replace(/[^0-9.]/g,''))||0; }
+function fmtAngka(n){ return Math.round(n).toLocaleString('id-ID'); }
+function fmtRp(v){ const n=parseN(v); return n?'Rp '+fmtAngka(n):''; }
+function pct(v, base){ const n=parseN(v), b=parseN(base||0); return b>0?((n/b)*100).toFixed(1)+'%':'-'; }
+function showToast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'');
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function buildPodTable(jsonStr){
+  let pods = [];
+  try{ pods = JSON.parse(jsonStr||'[]'); } catch(e){ pods = []; }
+  if(!Array.isArray(pods) || pods.length === 0){
+    return `<div class="pod-none">— Tidak ada outlet OD</div>`;
+  }
+  let total = 0;
+  pods.forEach(p => total += parseFloat(p.jumlah)||0);
+
+  let rows = pods.map(p => `
+    <div class="pod-tbl-row">
+      <span class="p-toko">${p.toko||'-'}</span>
+      <span class="p-jml">Rp ${fmtAngka(parseFloat(p.jumlah)||0)}</span>
+      <span class="p-ket">${p.keterangan||'—'}</span>
+    </div>`).join('');
+
+  return `<div class="pod-tbl">
+    <div class="pod-tbl-head">
+      <span>⚠ POD Outlet Tidak Bayar</span>
+      <span style="text-align:right">Jumlah</span>
+      <span>Keterangan</span>
+    </div>
+    ${rows}
+    <div class="pod-tbl-foot">
+      <span class="lbl">Total OD Outlet (${pods.length} outlet)</span>
+      <span class="val">Rp ${fmtAngka(total)}</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════
+// TARGET MANAGEMENT
+// ══════════════════════════════════════
+let selectedTgtKode = null;
+let savedTargets    = []; // cache target tersimpan
+
+function initTargetTab(){
+  document.getElementById('targetSiklusLabel').textContent = siklusAktif || '—';
+  buildTgtKodeGrid();
+  loadTargets();
+  // listen input untuk preview Target Day
+  ['tgt_sales_month','tgt_hari'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.oninput = previewTargetDay;
+  });
+}
+
+function buildTgtKodeGrid(){
+  const grid = document.getElementById('tgtKodeGrid');
+  if(grid.children.length > 0) return; // sudah dibuild
+  KODE.forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'view-btn'; b.textContent = k; b.style.fontSize = '11px';
+    b.onclick = () => selectTgtKode(k, b);
+    grid.appendChild(b);
+  });
+}
+
+function selectTgtKode(k, btn){
+  selectedTgtKode = k;
+  document.querySelectorAll('#tgtKodeGrid .view-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  // Pre-fill jika sudah ada target tersimpan untuk kode ini
+  const existing = savedTargets.find(t => t.kode === k);
+  if(existing){
+    document.getElementById('tgt_ec').value          = existing.ec_target || '';
+    document.getElementById('tgt_item').value        = existing.item_target || '';
+    document.getElementById('tgt_sales_month').value = existing.sales_tgt_month || '';
+    document.getElementById('tgt_hari').value        = existing.sales_hari_siklus || '';
+    document.getElementById('tgt_od').value          = existing.od_target || '';
+    previewTargetDay();
+  } else {
+    // Default values
+    document.getElementById('tgt_ec').value   = '26';
+    document.getElementById('tgt_item').value = '8';
+    document.getElementById('tgt_sales_month').value = '';
+    document.getElementById('tgt_hari').value = '';
+    document.getElementById('tgt_od').value   = '';
+    document.getElementById('tgtPreviewDay').style.display = 'none';
+  }
+}
+
+function previewTargetDay(){
+  const month = parseN(document.getElementById('tgt_sales_month')?.value || '0');
+  const hari  = parseN(document.getElementById('tgt_hari')?.value || '0');
+  const prev  = document.getElementById('tgtPreviewDay');
+  const val   = document.getElementById('tgtDayVal');
+  if(month > 0 && hari > 0){
+    prev.style.display = 'block';
+    val.textContent = 'Rp ' + fmtAngka(Math.round(month / hari));
+  } else {
+    prev.style.display = 'none';
+  }
+}
+
+async function saveTarget(){
+  if(!selectedTgtKode){
+    const err = document.getElementById('tgtErr');
+    err.textContent = '⚠ Pilih kode salesman dulu';
+    err.style.display = 'block';
+    setTimeout(() => err.style.display='none', 3000); return;
+  }
+  const ec    = document.getElementById('tgt_ec').value.trim();
+  const item  = document.getElementById('tgt_item').value.trim();
+  const month = document.getElementById('tgt_sales_month').value.trim();
+  const hari  = document.getElementById('tgt_hari').value.trim();
+  const od    = document.getElementById('tgt_od').value.trim();
+
+  if(!month || !hari){
+    const err = document.getElementById('tgtErr');
+    err.textContent = '⚠ Sales Target Month dan Jumlah Hari wajib diisi';
+    err.style.display = 'block';
+    setTimeout(()=>err.style.display='none',3000); return;
+  }
+
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      action:'set_target', password:pw, siklus:siklusAktif,
+      kode_salesman:selectedTgtKode,
+      ec_target: ec||26, item_target: item||8,
+      sales_tgt_month: month, sales_hari_siklus: hari, od_target: od||''
+    })});
+    const d = await r.json();
+    if(d.ok){
+      showToast('✓ Target ' + selectedTgtKode + ' disimpan');
+      loadTargets();
+    } else { showToast(d.msg, true); }
+  }catch(e){ showToast('Koneksi gagal',true); }
+}
+
+async function loadTargets(){
+  const container = document.getElementById('targetList');
+  container.innerHTML = '<div class="empty-st" style="padding:16px"><span class="spin-sm"></span><span style="color:var(--muted2);font-size:12px">Memuat target...</span></div>';
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      action:'get_rekap', password:pw, tanggal:null, siklus:siklusAktif
+    })});
+    // Gunakan endpoint berbeda: ambil semua target via GET
+    const r2 = await fetch(`${GAS_URL}?action=get_all_targets&siklus=${encodeURIComponent(siklusAktif)}&pw=${encodeURIComponent(pw)}`);
+    // Fallback: ambil dari data laporan terbaru per kode
+    const d = await r.json();
+    renderTargetList(d.targets || []);
+  }catch(e){
+    container.innerHTML='<div class="empty-st"><div class="ico">⚠️</div><p>Gagal memuat</p></div>';
+  }
+}
+
+function renderTargetList(targets){
+  savedTargets = targets;
+  const c = document.getElementById('targetList');
+  if(!targets || !targets.length){
+    c.innerHTML='<div class="empty-st"><div class="ico">🎯</div><p>Belum ada target untuk siklus ini.<br>Pilih salesman dan isi target di atas.</p></div>';
+    return;
+  }
+  // Buat map kode → target
+  const tMap = {};
+  targets.forEach(t => tMap[t.kode] = t);
+
+  c.innerHTML = '';
+  const table = document.createElement('div');
+  table.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden';
+
+  // Header
+  table.innerHTML = `<div style="display:grid;grid-template-columns:52px 1fr 1fr 60px;
+    padding:9px 14px;background:var(--card2);border-bottom:1px solid var(--border)">
+    <span style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase">Kode</span>
+    <span style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase">Target Sales</span>
+    <span style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase">OD Target</span>
+    <span style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;text-align:center">Hari</span>
+  </div>`;
+
+  KODE.forEach(k => {
+    const t = tMap[k];
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:52px 1fr 1fr 60px;padding:10px 14px;border-bottom:1px dashed var(--border);cursor:pointer;transition:background .15s';
+    row.onmouseenter = () => row.style.background='var(--card2)';
+    row.onmouseleave = () => row.style.background='';
+    row.onclick = () => {
+      // Quick select kode ini ke form
+      const btnEl = [...document.querySelectorAll('#tgtKodeGrid .view-btn')].find(b=>b.textContent===k);
+      if(btnEl) selectTgtKode(k, btnEl);
+    };
+    if(t){
+      row.innerHTML = `
+        <span style="font-size:12px;font-weight:800;color:var(--green)">${k}</span>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text)">Rp ${fmtAngka(t.sales_tgt_month)}</div>
+          <div style="font-size:9px;color:var(--muted2)">EC:${t.ec_target} | Item:${t.item_target}</div>
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--text)">Rp ${fmtAngka(t.od_target||0)}</span>
+        <span style="font-size:11px;text-align:center;color:var(--orange);font-weight:700">${t.sales_hari_siklus||'-'}</span>`;
+    } else {
+      row.innerHTML = `
+        <span style="font-size:12px;font-weight:800;color:var(--muted)">${k}</span>
+        <span style="font-size:11px;color:var(--muted);grid-column:2/5">— Belum ada target (klik untuk set)</span>`;
+    }
+    table.appendChild(row);
+  });
+
+  c.innerHTML = '';
+  c.appendChild(table);
+}
+
+// ══════════════════════════════════════
+// SALESMAN MANAGEMENT
+// ══════════════════════════════════════
+function loadSalesmanList(){
+  var wrap = document.getElementById('salesmanListWrap');
+  wrap.innerHTML = '<div class="empty-st" style="padding:16px"><span class="spin-sm"></span><span style="color:var(--muted2);font-size:12px">Memuat...</span></div>';
+  fetch(GAS_URL+'?action=get_salesman_list')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d.ok){ wrap.innerHTML='<div class="empty-st"><p>Gagal memuat</p></div>'; return; }
+      renderSalesmanList(d.list||[]);
+    })
+    .catch(function(){ wrap.innerHTML='<div class="empty-st"><p>Koneksi gagal</p></div>'; });
+}
+
+function renderSalesmanList(list){
+  var wrap = document.getElementById('salesmanListWrap');
+  if(!list.length){
+    wrap.innerHTML='<div class="empty-st"><div class="ico">👥</div><p>Belum ada salesman. Tambah di atas.</p></div>';
+    return;
+  }
+  var html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">';
+  list.forEach(function(k,i){
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;'+
+      'padding:13px 16px;border-bottom:'+(i<list.length-1?'1px solid var(--border)':'none')+';'+
+      'transition:background .15s" onmouseenter="this.style.background=\'var(--card2)\'" '+
+      'onmouseleave="this.style.background=\'\'">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<span style="font-size:13px;font-weight:800;color:var(--accent);'+
+          'background:rgba(59,130,246,.1);padding:4px 12px;border-radius:7px;letter-spacing:1px">'+k+'</span>'+
+        '<span style="font-size:12px;color:var(--muted2)">Salesman '+k+'</span>'+
+      '</div>'+
+      '<button onclick="hapusSalesman(\''+k+'\')" '+
+        'style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);'+
+        'border-radius:7px;color:var(--red);font-size:11px;font-weight:700;'+
+        'padding:6px 12px;cursor:pointer;font-family:var(--font);transition:all .15s"'+
+        ' onmouseenter="this.style.background=\'rgba(239,68,68,.2)\'" '+
+        'onmouseleave="this.style.background=\'rgba(239,68,68,.1)\'">'+
+        '🗑 Hapus</button>'+
+    '</div>';
+  });
+  html += '</div>';
+  html += '<div style="font-size:11px;color:var(--muted2);padding:10px 4px">'+
+    'Total: <strong>'+list.length+'</strong> salesman aktif</div>';
+  wrap.innerHTML = html;
+}
+
+function tambahSalesman(){
+  var input = document.getElementById('newKodeInput');
+  var kode  = (input.value||'').trim().toUpperCase();
+  if(!kode){ showToast('Isi kode salesman dulu',true); return; }
+
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+    action:'add_salesman', password:pw, kode:kode
+  })})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){
+      showToast('✓ '+d.msg);
+      input.value='';
+      loadSalesmanList();
+    } else { showToast(d.msg,true); }
+  })
+  .catch(function(){ showToast('Koneksi gagal',true); });
+}
+
+function hapusSalesman(kode){
+  if(!confirm('Hapus kode salesman '+kode+'?\n\nData laporan yang sudah ada tidak akan terhapus.')) return;
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+    action:'delete_salesman', password:pw, kode:kode
+  })})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){ showToast('✓ '+d.msg); loadSalesmanList(); }
+    else { showToast(d.msg,true); }
+  })
+  .catch(function(){ showToast('Koneksi gagal',true); });
+}
+</script>
+</body>
+</html>
