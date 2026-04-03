@@ -920,6 +920,7 @@ function genWADay(){
 
       lines+=`\n*${k}*  Sales MTD: Rp ${r['Sales MTD Val']||'-'} (${r['Sales MTD %']||'-'}%)`+
              `\n      EC Hi: ${r['EC Hi Tk']||'-'} Tk | EC MTD: ${r['EC MTD Tk']||'-'} Tk`+
+             `\n      Item Hi: ${r['Item Hi Val']||'-'} | Item MTD: ${r['Item MTD Val']||'-'}`+
              `\n      Coll/CD: Rp ${r['OD Realisasi']||'-'} | OD: ${r['OD Overdue %']||'-'}%`+
              podLines;
     }
@@ -952,12 +953,26 @@ function genWASpv(){
   const sv   = Object.values(map)[0]?.['Supervisor']||'-';
   const n    = Object.keys(map).length;
 
-  let totSalesHi=0, totSalesMTD=0, totODTarget=0, totODReal=0, totECHi=0, totECMTD=0;
+  let totSalesHi=0, totSalesMTD=0, totODTarget=0, totODReal=0;
+  let totECHi=0, totECMTD=0, totCallDay=0, totCallMTD=0;
+  let totItemHi=0, totItemMTD=0; // ← tambah item
   Object.values(map).forEach(r=>{
-    totSalesHi+=parseN(r['Sales Hi Val']); totSalesMTD+=parseN(r['Sales MTD Val']);
-    totODTarget+=parseN(r['OD Target']); totODReal+=parseN(r['OD Realisasi']);
-    totECHi+=parseN(r['EC Hi Tk']); totECMTD+=parseN(r['EC MTD Tk']);
+    totSalesHi   += parseN(r['Sales Hi Val']);
+    totSalesMTD  += parseN(r['Sales MTD Val']);
+    totODTarget  += parseN(r['OD Target']);
+    totODReal    += parseN(r['OD Realisasi']);
+    totECHi      += parseN(r['EC Hi Tk']);
+    totECMTD     += parseN(r['EC MTD Tk']);
+    totCallDay   += parseN(r['EC Call Day']);
+    totCallMTD   += parseN(r['EC Call MTD']);
+    totItemHi    += parseN(r['Item Total Hi']);
+    totItemMTD   += parseN(r['Item Total MTD']);
   });
+
+  // Hitung rata-rata Item Hi & MTD (total item ÷ total EC)
+  const avgItemHi  = totECHi  > 0 ? (totItemHi  / totECHi).toFixed(2)  : '-';
+  const avgItemMTD = totECMTD > 0 ? (totItemMTD / totECMTD).toFixed(2) : '-';
+  const avgColl    = totODTarget > 0 ? ((totODReal/totODTarget)*100).toFixed(1) : '-';
 
   const teks = `*Laporan Harian Supervisor*\n`+
     `Sales Supervisor : ${sv}\n`+
@@ -965,15 +980,22 @@ function genWASpv(){
     `Siklus : ${siklusAktif||'-'}\n`+
     `Salesman laporan : ${n}/${KODE.length}\n\n`+
     `*EC*\n`+
-    `   Total EC Hi  : ${totECHi} Tk\n`+
-    `   Total EC MTD : ${totECMTD} Tk\n\n`+
+    `   Call Day    : ${totCallDay} Tk\n`+
+    `   Call MTD    : ${totCallMTD} Tk\n`+
+    `   Total EC Hi : ${totECHi} Tk\n`+
+    `   Total EC MTD: ${totECMTD} Tk\n\n`+
+    `*ITEM*\n`+
+    `   Total Item Hi  : ${totItemHi} pcs\n`+
+    `   Avg Item Hi    : ${avgItemHi} (÷EC Hi)\n`+
+    `   Total Item MTD : ${totItemMTD} pcs\n`+
+    `   Avg Item MTD   : ${avgItemMTD} (÷EC MTD)\n\n`+
     `*SALES*\n`+
     `   Total Sales Hi  : Rp ${fmtAngka(totSalesHi)}\n`+
     `   Total Sales MTD : Rp ${fmtAngka(totSalesMTD)}\n\n`+
     `*OD / COLLECTION*\n`+
     `   Target Coll/EAR : Rp ${fmtAngka(totODTarget)}\n`+
     `   Realisasi/CD    : Rp ${fmtAngka(totODReal)}\n`+
-    `   Avg Collection  : ${totODTarget>0?((totODReal/totODTarget)*100).toFixed(1):'-'}%\n\n`+
+    `   Avg Collection  : ${avgColl}%\n\n`+
     `_Terimakasih_ 🙏`;
 
   showWAPreview('waSpvWrap', teks);
