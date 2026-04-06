@@ -484,7 +484,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 // ═══════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzhVLh55nq9NvUH256425nALzXLUXeE4xld0-Sy9pvaZzd_EqVJADnapHfzV6gCN05Y/exec';
+const GAS_URL = 'GANTI_URL_GOOGLE_APPS_SCRIPT_DISINI';
 // ═══════════════════════════════════
 
 const KODE   = ['S005','S016','S017','S018','S019','S120','S121'];
@@ -952,50 +952,68 @@ function genWASpv(){
   const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
   const sv   = Object.values(map)[0]?.['Supervisor']||'-';
   const n    = Object.keys(map).length;
+  const EC_TARGET_TOTAL = EC_TGT * n; // total target EC semua salesman
 
-  let totSalesHi=0, totSalesMTD=0, totODTarget=0, totODReal=0;
+  let totSalesHi=0, totSalesMTD=0, totSalesTgtMonth=0, totSalesTgtDay=0, totSalesTgtYTD=0;
+  let totODTarget=0, totODReal=0, totODValue=0;
   let totECHi=0, totECMTD=0, totCallDay=0, totCallMTD=0;
-  let totItemHi=0, totItemMTD=0; // ← tambah item
+  let totItemHi=0, totItemMTD=0;
+
   Object.values(map).forEach(r=>{
-    totSalesHi   += parseN(r['Sales Hi Val']);
-    totSalesMTD  += parseN(r['Sales MTD Val']);
-    totODTarget  += parseN(r['OD Target']);
-    totODReal    += parseN(r['OD Realisasi']);
-    totECHi      += parseN(r['EC Hi Tk']);
-    totECMTD     += parseN(r['EC MTD Tk']);
-    totCallDay   += parseN(r['EC Call Day']);
-    totCallMTD   += parseN(r['EC Call MTD']);
-    totItemHi    += parseN(r['Item Total Hi']);
-    totItemMTD   += parseN(r['Item Total MTD']);
+    totSalesHi       += parseN(r['Sales Hi Val']);
+    totSalesMTD      += parseN(r['Sales MTD Val']);
+    totSalesTgtMonth += parseN(r['Sales Target Month']);
+    totSalesTgtDay   += parseN(r['Sales Target Day']);
+    totSalesTgtYTD   += parseN(r['Sales Target YTD Month']);
+    totODTarget      += parseN(r['OD Target']);
+    totODReal        += parseN(r['OD Realisasi']);
+    totODValue       += parseN(r['OD Value']);
+    totECHi          += parseN(r['EC Hi Tk']);
+    totECMTD         += parseN(r['EC MTD Tk']);
+    totCallDay       += parseN(r['EC Call Day']);
+    totCallMTD       += parseN(r['EC Call MTD']);
+    totItemHi        += parseN(r['Item Total Hi']);
+    totItemMTD       += parseN(r['Item Total MTD']);
   });
 
-  // Hitung rata-rata Item Hi & MTD (total item ÷ total EC)
+  // Hitung %
+  const ecHiPct    = EC_TARGET_TOTAL > 0 ? ((totECHi  / EC_TARGET_TOTAL)*100).toFixed(1)+'%' : '-';
+  const ecMTDPct   = EC_TARGET_TOTAL > 0 ? ((totECMTD / EC_TARGET_TOTAL)*100).toFixed(1)+'%' : '-';
   const avgItemHi  = totECHi  > 0 ? (totItemHi  / totECHi).toFixed(2)  : '-';
   const avgItemMTD = totECMTD > 0 ? (totItemMTD / totECMTD).toFixed(2) : '-';
-  const avgColl    = totODTarget > 0 ? ((totODReal/totODTarget)*100).toFixed(1) : '-';
+  const collPct    = totODTarget > 0 ? ((totODReal/totODTarget)*100).toFixed(1)+'%' : '-';
+  const odPct      = totODTarget > 0 ? ((totODValue/totODTarget)*100).toFixed(1)+'%' : '-';
+  const salesHiPct = totSalesTgtDay   > 0 ? ((totSalesHi /totSalesTgtDay  )*100).toFixed(1)+'%' : '-';
+  const salesMTDPct= totSalesTgtMonth > 0 ? ((totSalesMTD/totSalesTgtMonth)*100).toFixed(1)+'%' : '-';
 
-  const teks = `*Laporan Harian Supervisor*\n`+
+  const teks =
+    `*Laporan Harian Supervisor*\n`+
     `Sales Supervisor : ${sv}\n`+
     `Tanggal : ${tglS}\n`+
     `Siklus : ${siklusAktif||'-'}\n`+
     `Salesman laporan : ${n}/${KODE.length}\n\n`+
-    `*EC*\n`+
+    `➫ *EC*\n`+
     `   Call Day    : ${totCallDay} Tk\n`+
     `   Call MTD    : ${totCallMTD} Tk\n`+
-    `   Total EC Hi : ${totECHi} Tk\n`+
-    `   Total EC MTD: ${totECMTD} Tk\n\n`+
-    `*ITEM*\n`+
+    `   EC Hi       : ${totECHi} Tk / ${ecHiPct}\n`+
+    `   EC MTD      : ${totECMTD} Tk / ${ecMTDPct}\n\n`+
+    `➫ *ITEM*\n`+
     `   Total Item Hi  : ${totItemHi} pcs\n`+
     `   Avg Item Hi    : ${avgItemHi} (÷EC Hi)\n`+
     `   Total Item MTD : ${totItemMTD} pcs\n`+
     `   Avg Item MTD   : ${avgItemMTD} (÷EC MTD)\n\n`+
-    `*SALES*\n`+
-    `   Total Sales Hi  : Rp ${fmtAngka(totSalesHi)}\n`+
-    `   Total Sales MTD : Rp ${fmtAngka(totSalesMTD)}\n\n`+
-    `*OD / COLLECTION*\n`+
+    `➫ *SALES*\n`+
+    `   Target Month   : Rp ${fmtAngka(totSalesTgtMonth)}\n`+
+    `   Target YTD     : Rp ${fmtAngka(totSalesTgtYTD)}\n`+
+    `   Target Day     : Rp ${fmtAngka(totSalesTgtDay)}\n`+
+    `   Sales Hi       : Rp ${fmtAngka(totSalesHi)} / ${salesHiPct}\n`+
+    `   Sales MTD      : Rp ${fmtAngka(totSalesMTD)} / ${salesMTDPct}\n\n`+
+    `➫ *OD / COLLECTION*\n`+
     `   Target Coll/EAR : Rp ${fmtAngka(totODTarget)}\n`+
     `   Realisasi/CD    : Rp ${fmtAngka(totODReal)}\n`+
-    `   Avg Collection  : ${avgColl}%\n\n`+
+    `   Collection      : ${collPct}\n`+
+    `   OD in Value     : Rp ${fmtAngka(totODValue)}\n`+
+    `   Over Due        : ${odPct}\n\n`+
     `_Terimakasih_ 🙏`;
 
   showWAPreview('waSpvWrap', teks);
