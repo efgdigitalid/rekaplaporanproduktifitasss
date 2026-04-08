@@ -307,17 +307,43 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <button class="view-btn"    id="vbSpv"  onclick="setView('spv',this)">👤 Lap. Supervisor</button>
       </div>
 
-      <!-- Filter tanggal -->
-      <div class="filter-bar">
-        <div class="fbar-field">
-          <label>📅</label>
-          <input type="date" id="filterDate">
+      <!-- Filter tanggal — mode: spesifik / rentang -->
+      <div style="margin-bottom:10px">
+        <!-- Toggle mode -->
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button id="modeSpesifik" onclick="setFilterMode('spesifik')"
+            style="flex:1;padding:7px;border-radius:8px;font-family:var(--font);font-size:11px;
+              font-weight:700;cursor:pointer;border:1.5px solid var(--accent);
+              background:var(--accent);color:#fff;transition:all .2s">
+            📅 Tanggal Spesifik
+          </button>
+          <button id="modeRentang" onclick="setFilterMode('rentang')"
+            style="flex:1;padding:7px;border-radius:8px;font-family:var(--font);font-size:11px;
+              font-weight:700;cursor:pointer;border:1.5px solid var(--border);
+              background:var(--card2);color:var(--muted2);transition:all .2s">
+            📆 Rentang Tanggal
+          </button>
         </div>
-        <div class="fbar-field" id="fbSiklus" style="display:none">
-          <label>Siklus</label>
-          <select id="filterSiklus"><option value="">Semua</option></select>
+        <!-- Filter spesifik -->
+        <div class="filter-bar" id="filterSpesifik">
+          <div class="fbar-field">
+            <label>📅 Tanggal</label>
+            <input type="date" id="filterDate">
+          </div>
+          <button class="btn-load" onclick="loadData()">Tampilkan</button>
         </div>
-        <button class="btn-load" onclick="loadData()">Tampilkan</button>
+        <!-- Filter rentang -->
+        <div class="filter-bar" id="filterRentang" style="display:none;flex-wrap:wrap;gap:6px">
+          <div class="fbar-field" style="flex:1;min-width:130px">
+            <label>📅 Dari</label>
+            <input type="date" id="filterDari">
+          </div>
+          <div class="fbar-field" style="flex:1;min-width:130px">
+            <label>📅 Sampai</label>
+            <input type="date" id="filterSampai">
+          </div>
+          <button class="btn-load" style="width:100%" onclick="loadDataRentang()">Tampilkan</button>
+        </div>
       </div>
 
       <!-- Status chips -->
@@ -380,18 +406,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
     <div id="tabSalesman" class="hidden">
       <div class="stitle"><span class="dot"></span>Tambah Kode Salesman</div>
       <div class="fcard" style="margin-bottom:14px">
-        <div style="display:flex;gap:8px;align-items:stretch">
+        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">
           <input type="text" id="newKodeInput"
             style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
               padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;
               font-weight:700;outline:none;letter-spacing:1px;text-transform:uppercase"
-            placeholder="cth: S025"
+            placeholder="Kode cth: S025"
+            onkeydown="if(event.key==='Enter') document.getElementById('newPinInput').focus()">
+        </div>
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input type="text" inputmode="numeric" maxlength="4" id="newPinInput"
+            style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+              padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;
+              font-weight:700;outline:none;letter-spacing:4px;text-align:center"
+            placeholder="PIN (4 angka)"
             onkeydown="if(event.key==='Enter') tambahSalesman()">
           <button class="btn-add" style="flex-shrink:0;padding:10px 18px"
             onclick="tambahSalesman()">+ Tambah</button>
         </div>
         <div style="font-size:11px;color:var(--muted2);margin-top:8px">
-          Kode akan langsung aktif di form salesman.
+          PIN default bisa dipakai salesman untuk login pertama kali.
         </div>
       </div>
 
@@ -555,6 +589,25 @@ function setMTDView(v, btn){
   document.getElementById('mtdSpvView').classList.toggle('hidden', v!=='supervisor');
 }
 
+// ── FILTER MODE TOGGLE ──
+var filterMode = 'spesifik';
+function setFilterMode(mode){
+  filterMode = mode;
+  var isRentang = mode === 'rentang';
+  document.getElementById('filterSpesifik').style.display  = isRentang ? 'none' : 'flex';
+  document.getElementById('filterRentang').style.display   = isRentang ? 'flex' : 'none';
+  // Style tombol toggle
+  var btnS = document.getElementById('modeSpesifik');
+  var btnR = document.getElementById('modeRentang');
+  if(isRentang){
+    btnR.style.background    = 'var(--accent)'; btnR.style.color = '#fff'; btnR.style.borderColor = 'var(--accent)';
+    btnS.style.background    = 'var(--card2)';  btnS.style.color = 'var(--muted2)'; btnS.style.borderColor = 'var(--border)';
+  } else {
+    btnS.style.background    = 'var(--accent)'; btnS.style.color = '#fff'; btnS.style.borderColor = 'var(--accent)';
+    btnR.style.background    = 'var(--card2)';  btnR.style.color = 'var(--muted2)'; btnR.style.borderColor = 'var(--border)';
+  }
+}
+
 // ── LOAD DATA ──
 async function loadData(){
   const tgl = document.getElementById('filterDate').value;
@@ -566,6 +619,25 @@ async function loadData(){
     allDataCache = d.data||[];
     siklusAktif  = d.siklus_aktif||'';
     renderAll(allDataCache);
+  }catch(e){ showToast('Koneksi gagal',true); }
+}
+
+async function loadDataRentang(){
+  const dari    = document.getElementById('filterDari').value;
+  const sampai  = document.getElementById('filterSampai').value;
+  if(!dari||!sampai){ showToast('Isi tanggal dari dan sampai',true); return; }
+  if(dari > sampai){ showToast('Tanggal dari tidak boleh lebih besar dari sampai',true); return; }
+  setLoading('smList');
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      action:'get_rekap', password:pw, tgl_dari:dari, tgl_sampai:sampai
+    })});
+    const d = await r.json();
+    if(!d.ok){ showToast(d.msg,true); return; }
+    allDataCache = d.data||[];
+    siklusAktif  = d.siklus_aktif||'';
+    renderAll(allDataCache);
+    showToast('✓ Data '+dari+' s/d '+sampai+' dimuat');
   }catch(e){ showToast('Koneksi gagal',true); }
 }
 
@@ -1340,44 +1412,53 @@ function renderSalesmanList(list){
     return;
   }
   var html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">';
-  list.forEach(function(k,i){
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;'+
-      'padding:13px 16px;border-bottom:'+(i<list.length-1?'1px solid var(--border)':'none')+';'+
-      'transition:background .15s" onmouseenter="this.style.background=\'var(--card2)\'" '+
-      'onmouseleave="this.style.background=\'\'">'+
-      '<div style="display:flex;align-items:center;gap:10px">'+
+  list.forEach(function(item,i){
+    var k = typeof item === 'object' ? item.kode : item;
+    html += '<div style="padding:13px 16px;border-bottom:'+(i<list.length-1?'1px solid var(--border)':'none')+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
         '<span style="font-size:13px;font-weight:800;color:var(--accent);'+
           'background:rgba(59,130,246,.1);padding:4px 12px;border-radius:7px;letter-spacing:1px">'+k+'</span>'+
-        '<span style="font-size:12px;color:var(--muted2)">Salesman '+k+'</span>'+
+        '<button onclick="hapusSalesman(\''+k+'\')" '+
+          'style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);'+
+          'border-radius:7px;color:var(--red);font-size:11px;font-weight:700;'+
+          'padding:5px 10px;cursor:pointer;font-family:var(--font)">🗑 Hapus</button>'+
       '</div>'+
-      '<button onclick="hapusSalesman(\''+k+'\')" '+
-        'style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);'+
-        'border-radius:7px;color:var(--red);font-size:11px;font-weight:700;'+
-        'padding:6px 12px;cursor:pointer;font-family:var(--font);transition:all .15s"'+
-        ' onmouseenter="this.style.background=\'rgba(239,68,68,.2)\'" '+
-        'onmouseleave="this.style.background=\'rgba(239,68,68,.1)\'">'+
-        '🗑 Hapus</button>'+
+      // Reset PIN section
+      '<div style="display:flex;align-items:center;gap:6px">'+
+        '<input type="text" inputmode="numeric" maxlength="4" id="pin_'+k+'"'+
+          ' placeholder="PIN baru (4 angka)"'+
+          ' style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;'+
+          'padding:6px 10px;color:var(--text);font-family:var(--font);font-size:13px;'+
+          'font-weight:700;outline:none;letter-spacing:3px">'+
+        '<button onclick="resetPinSalesman(\''+k+'\')"'+
+          ' style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);'+
+          'border-radius:7px;color:var(--orange);font-size:11px;font-weight:700;'+
+          'padding:6px 12px;cursor:pointer;font-family:var(--font);white-space:nowrap">'+
+          '🔑 Reset PIN</button>'+
+      '</div>'+
     '</div>';
   });
   html += '</div>';
-  html += '<div style="font-size:11px;color:var(--muted2);padding:10px 4px">'+
-    'Total: <strong>'+list.length+'</strong> salesman aktif</div>';
+  html += '<div style="font-size:11px;color:var(--muted2);padding:10px 4px">Total: <strong>'+list.length+'</strong> salesman aktif</div>';
   wrap.innerHTML = html;
 }
 
 function tambahSalesman(){
-  var input = document.getElementById('newKodeInput');
-  var kode  = (input.value||'').trim().toUpperCase();
+  var input    = document.getElementById('newKodeInput');
+  var pinInput = document.getElementById('newPinInput');
+  var kode = (input.value||'').trim().toUpperCase();
+  var pin  = (pinInput.value||'').trim();
   if(!kode){ showToast('Isi kode salesman dulu',true); return; }
+  if(pin.length!==4||isNaN(pin)){ showToast('PIN harus 4 angka',true); return; }
 
   fetch(GAS_URL,{method:'POST',body:JSON.stringify({
-    action:'add_salesman', password:pw, kode:kode
+    action:'add_salesman', password:pw, kode:kode, pin:pin
   })})
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(d.ok){
       showToast('✓ '+d.msg);
-      input.value='';
+      input.value=''; pinInput.value='';
       loadSalesmanList();
     } else { showToast(d.msg,true); }
   })
@@ -1392,6 +1473,22 @@ function hapusSalesman(kode){
   .then(function(r){ return r.json(); })
   .then(function(d){
     if(d.ok){ showToast('✓ '+d.msg); loadSalesmanList(); }
+    else { showToast(d.msg,true); }
+  })
+  .catch(function(){ showToast('Koneksi gagal',true); });
+}
+
+function resetPinSalesman(kode){
+  var pinEl = document.getElementById('pin_'+kode);
+  var pin   = (pinEl ? pinEl.value : '').trim();
+  if(pin.length!==4||isNaN(pin)){ showToast('PIN harus 4 angka',true); return; }
+  if(!confirm('Reset PIN salesman '+kode+' ke '+pin+'?')) return;
+  fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+    action:'reset_pin', password:pw, kode:kode, pin_baru:pin
+  })})
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){ showToast('✓ '+d.msg); pinEl.value=''; }
     else { showToast(d.msg,true); }
   })
   .catch(function(){ showToast('Koneksi gagal',true); });
