@@ -518,7 +518,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 // ═══════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby_qQcB-rVZ6qiW0l-zSTGPW2_JPPQAACAEOIIZH-298hCWm1GgW6LqufE-4arwUbTc/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiQm4E5tA4480gGsr4igPpb9vyfo2QTTYYp0homSLmBTazvxf5O7jy-du9oQsEBDWZ/exec';
 // ═══════════════════════════════════
 
 const KODE   = ['S005','S016','S017','S018','S019','S120','S121'];
@@ -739,18 +739,18 @@ function buildDetail(r){
     <div class="drow"><span class="dk">Total Item MTD</span><span class="dv">${r['Item Total MTD']||'-'}</span></div>
     <div class="drow"><span class="dk">Item MTD (÷EC)</span><span class="dv ok">${r['Item MTD Val']||'-'} — ${r['Item MTD Info']||'-'}</span></div>
     <div class="dsec-title">SALES</div>
-    <div class="drow"><span class="dk">Target Month</span><span class="dv">Rp ${r['Sales Target Month']||'-'}</span></div>
-    <div class="drow"><span class="dk">Target YTD Month</span><span class="dv" style="color:var(--orange)">Rp ${r['Sales Target YTD Month']||r['Sales Target Month']||'-'}</span></div>
+    <div class="drow"><span class="dk">Target Month</span><span class="dv">Rp ${fmtAngka(parseN(r['Sales Target Month']))}</span></div>
+    <div class="drow"><span class="dk">Target YTD Month</span><span class="dv" style="color:var(--orange)">Rp ${fmtAngka(parseN(r['Sales Target YTD Month']||r['Sales Target Month']))}</span></div>
     <div class="drow"><span class="dk">Hari Siklus</span><span class="dv">${r['Sales Hari Siklus']||'-'} hari</span></div>
-    <div class="drow"><span class="dk">Target Day</span><span class="dv" style="color:var(--orange)">Rp ${r['Sales Target Day']||'-'}</span></div>
-    <div class="drow"><span class="dk">Sales Hi</span><span class="dv hi">Rp ${r['Sales Hi Val']||'-'} / ${r['Sales Hi %']||'-'}</span></div>
-    <div class="drow"><span class="dk">Sales MTD</span><span class="dv ok">Rp ${r['Sales MTD Val']||'-'} / ${r['Sales MTD %']||'-'}</span></div>
-    <div class="drow"><span class="dk">Growth YTD</span><span class="dv">Rp ${r['Sales YTD Val']||'-'} / ${r['Sales YTD %']||'-'}</span></div>
+    <div class="drow"><span class="dk">Target Day</span><span class="dv" style="color:var(--orange)">Rp ${fmtAngka(parseN(r['Sales Target Day']))}</span></div>
+    <div class="drow"><span class="dk">Sales Hi</span><span class="dv hi">Rp ${fmtAngka(parseN(r['Sales Hi Val']))} / ${r['Sales Hi %']||'-'}</span></div>
+    <div class="drow"><span class="dk">Sales MTD</span><span class="dv ok">Rp ${fmtAngka(parseN(r['Sales MTD Val']))} / ${r['Sales MTD %']||'-'}</span></div>
+    <div class="drow"><span class="dk">Growth YTD</span><span class="dv">Rp ${fmtAngka(parseN(r['Sales YTD Val']))} / ${r['Sales YTD %']||'-'}</span></div>
     <div class="dsec-title">OD / COLLECTION</div>
-    <div class="drow"><span class="dk">Target Coll/EAR</span><span class="dv">Rp ${r['OD Target']||'-'}</span></div>
-    <div class="drow"><span class="dk">Realisasi/CD</span><span class="dv ok">Rp ${r['OD Realisasi']||'-'}</span></div>
+    <div class="drow"><span class="dk">Target Coll/EAR</span><span class="dv">Rp ${fmtAngka(parseN(r['OD Target']))}</span></div>
+    <div class="drow"><span class="dk">Realisasi/CD</span><span class="dv ok">Rp ${fmtAngka(parseN(r['OD Realisasi']))}</span></div>
     <div class="drow"><span class="dk">Collection%</span><span class="dv ok">${r['OD Collection %']||'-'}</span></div>
-    <div class="drow"><span class="dk">OD in Value</span><span class="dv" style="color:var(--orange)">Rp ${r['OD Value']||'-'}</span></div>
+    <div class="drow"><span class="dk">OD in Value</span><span class="dv" style="color:var(--orange)">Rp ${fmtAngka(parseN(r['OD Value']))}</span></div>
     <div class="drow"><span class="dk">↳ Over Due%</span><span class="dv bad">${r['OD Overdue %']||'-'}</span></div>
     ${buildPodTable(r['POD Outlets JSON']||'[]')}
     <div style="margin-top:8px;font-size:10px;color:var(--muted2)">
