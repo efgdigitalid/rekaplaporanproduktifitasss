@@ -518,7 +518,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 // ═══════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby_qQcB-rVZ6qiW0l-zSTGPW2_JPPQAACAEOIIZH-298hCWm1GgW6LqufE-4arwUbTc/exec';
+const GAS_URL = 'GANTI_URL_GOOGLE_APPS_SCRIPT_DISINI';
 // ═══════════════════════════════════
 
 const KODE   = ['S005','S016','S017','S018','S019','S120','S121'];
@@ -1049,8 +1049,10 @@ function genWASpv(){
   });
 
   // Hitung %
-  const ecHiPct    = EC_TARGET_TOTAL > 0 ? ((totECHi  / EC_TARGET_TOTAL)*100).toFixed(1)+'%' : '-';
-  const ecMTDPct   = EC_TARGET_TOTAL > 0 ? ((totECMTD / EC_TARGET_TOTAL)*100).toFixed(1)+'%' : '-';
+  // EC Hi%  = EC Hi  ÷ Call Day  (bukan ÷ EC Target)
+  // EC MTD% = EC MTD ÷ Call MTD  (bukan ÷ EC Target)
+  const ecHiPct    = totCallDay  > 0 ? ((totECHi  / totCallDay )*100).toFixed(1)+'%' : '-';
+  const ecMTDPct   = totCallMTD  > 0 ? ((totECMTD / totCallMTD)*100).toFixed(1)+'%' : '-';
   const avgItemHi  = totECHi  > 0 ? (totItemHi  / totECHi).toFixed(2)  : '-';
   const avgItemMTD = totECMTD > 0 ? (totItemMTD / totECMTD).toFixed(2) : '-';
   const collPct    = totODTarget > 0 ? ((totODReal/totODTarget)*100).toFixed(1)+'%' : '-';
