@@ -1034,9 +1034,14 @@ function genWASpv(){
   Object.values(map).forEach(r=>{
     totSalesHi       += parseN(r['Sales Hi Val']);
     totSalesMTD      += parseN(r['Sales MTD Val']);
-    totSalesTgtMonth += parseN(r['Sales Target Month']);
-    totSalesTgtDay   += parseN(r['Sales Target Day']);
-    totSalesTgtYTD   += parseN(r['Sales Target YTD Month']);
+    // Target Month tersimpan dalam Rupiah penuh (×1000 saat submit)
+    // Jika nilai < 1000000 berarti data lama dalam ribuan → kalikan 1000
+    var tgtM = parseN(r['Sales Target Month']);
+    totSalesTgtMonth += tgtM > 0 && tgtM < 1000000 ? tgtM * 1000 : tgtM;
+    var tgtD = parseN(r['Sales Target Day']);
+    totSalesTgtDay   += tgtD > 0 && tgtD < 100000  ? tgtD * 1000 : tgtD;
+    var tgtY = parseN(r['Sales Target YTD Month']);
+    totSalesTgtYTD   += tgtY > 0 && tgtY < 1000000 ? tgtY * 1000 : tgtY;
     totODTarget      += parseN(r['OD Target']);
     totODReal        += parseN(r['OD Realisasi']);
     totODValue       += parseN(r['OD Value']);
@@ -1056,7 +1061,9 @@ function genWASpv(){
   const avgItemHi  = totECHi  > 0 ? (totItemHi  / totECHi).toFixed(2)  : '-';
   const avgItemMTD = totECMTD > 0 ? (totItemMTD / totECMTD).toFixed(2) : '-';
   const collPct    = totODTarget > 0 ? ((totODReal/totODTarget)*100).toFixed(1)+'%' : '-';
-  const odPct      = totODTarget > 0 ? ((totODValue/totODTarget)*100).toFixed(1)+'%' : '-';
+  // Hitung OD Value langsung dari Target - Realisasi (lebih akurat)
+  const odValueCalc = totODTarget > 0 ? Math.max(0, totODTarget - totODReal) : totODValue;
+  const odPct      = totODTarget > 0 ? ((odValueCalc/totODTarget)*100).toFixed(1)+'%' : '-';
   const salesHiPct = totSalesTgtDay   > 0 ? ((totSalesHi /totSalesTgtDay  )*100).toFixed(1)+'%' : '-';
   const salesMTDPct= totSalesTgtMonth > 0 ? ((totSalesMTD/totSalesTgtMonth)*100).toFixed(1)+'%' : '-';
 
@@ -1086,7 +1093,7 @@ function genWASpv(){
     `   Target Coll/EAR : Rp ${fmtAngka(totODTarget)}\n`+
     `   Realisasi/CD    : Rp ${fmtAngka(totODReal)}\n`+
     `   Collection      : ${collPct}\n`+
-    `   OD in Value     : Rp ${fmtAngka(totODValue)}\n`+
+    `   OD in Value     : Rp ${fmtAngka(odValueCalc)}\n`+
     `   Over Due        : ${odPct}\n\n`+
     `_Terimakasih_ 🙏`;
 
