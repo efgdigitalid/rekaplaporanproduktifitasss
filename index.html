@@ -645,10 +645,22 @@ async function loadMTD(){
   const sik = document.getElementById('mtdSiklus').value;
   setLoading('mtdSalesmanTable'); setLoading('mtdSpvTable');
   try{
-    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'get_rekap',password:pw,siklus:sik||null})});
+    // Kirim tanpa filter siklus jika belum ada siklus aktif
+    // agar data tetap muncul
+    const body = {action:'get_rekap', password:pw};
+    if(sik) body.siklus = sik;
+    // Jika tidak ada siklus, ambil semua data (tanpa filter tanggal & siklus)
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});
     const d = await r.json();
     if(!d.ok){ showToast(d.msg,true); return; }
     const data = d.data||[];
+    if(!data.length){
+      document.getElementById('mtdSalesmanTable').innerHTML =
+        '<div class="empty-st"><div class="ico">📭</div><p>Belum ada data laporan</p></div>';
+      document.getElementById('mtdSpvTable').innerHTML =
+        '<div class="empty-st"><div class="ico">📭</div><p>Belum ada data laporan</p></div>';
+      return;
+    }
     renderMTDSalesman(data, sik);
     renderMTDSupervisor(data, sik);
   }catch(e){ showToast('Koneksi gagal',true); }
