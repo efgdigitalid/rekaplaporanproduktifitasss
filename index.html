@@ -1144,10 +1144,10 @@ function genWASpv(){
 }
 
 function genWAMTD(){
-  const teks = document.getElementById('mtdSpvTable')?.innerText || '';
-  // Build proper MTD WA text
-  const sik = document.getElementById('mtdSiklus').value;
-  const t = `*Laporan MTD Supervisor*\nSiklus : ${sik||siklusAktif||'-'}\n\n`+
+  const dari   = document.getElementById('mtdDari')?.value   || '';
+  const sampai = document.getElementById('mtdSampai')?.value || '';
+  const periode = dari && sampai ? dari+' s/d '+sampai : siklusAktif||'-';
+  const t = `*Laporan MTD Supervisor*\nPeriode : ${periode}\n\n`+
     `(Lihat detail di tabel MTD Supervisor dashboard)\n\n_Terimakasih_ 🙏`;
   showWAPreview('waMTDWrap', t);
 }
@@ -1181,9 +1181,10 @@ async function loadSiklus(){
     siklusAktif = d.aktif||'';
     document.getElementById('siklusAktifVal').textContent = siklusAktif||'Belum ada';
 
-    const sels = [document.getElementById('filterSiklus'), document.getElementById('mtdSiklus')];
+    const sels = [document.getElementById('filterSiklus')].filter(Boolean);
     siklusCache = d.list||[];
     sels.forEach(sel=>{
+      if(!sel) return;
       const cur = sel.value;
       while(sel.options.length>1) sel.remove(1);
       siklusCache.forEach(s=>{ const o=new Option(s[0],s[0]); sel.appendChild(o); });
