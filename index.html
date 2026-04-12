@@ -1067,6 +1067,22 @@ function genWASpv(){
   const salesHiPct = totSalesTgtDay   > 0 ? ((totSalesHi /totSalesTgtDay  )*100).toFixed(1)+'%' : '-';
   const salesMTDPct= totSalesTgtMonth > 0 ? ((totSalesMTD/totSalesTgtMonth)*100).toFixed(1)+'%' : '-';
 
+  // Kumpulkan POD dari semua salesman
+  let allPodLines = '';
+  Object.entries(map).forEach(([kode, r])=>{
+    try{
+      const pods = JSON.parse(r['POD Outlets JSON']||'[]');
+      if(pods.length > 0){
+        allPodLines += `\n*${kode}* — POD (${pods.length} outlet):\n`;
+        pods.forEach((p,i)=>{
+          allPodLines += `   ${i+1}. ${p.toko} : Rp ${fmtAngka(parseFloat(p.jumlah)||0)}`;
+          if(p.keterangan) allPodLines += ` (${p.keterangan})`;
+          allPodLines += '\n';
+        });
+      }
+    }catch(e){}
+  });
+
   const teks =
     `*Laporan Harian Supervisor*\n`+
     `Sales Supervisor : ${sv}\n`+
@@ -1094,8 +1110,9 @@ function genWASpv(){
     `   Realisasi/CD    : Rp ${fmtAngka(totODReal)}\n`+
     `   Collection      : ${collPct}\n`+
     `   OD in Value     : Rp ${fmtAngka(odValueCalc)}\n`+
-    `   Over Due        : ${odPct}\n\n`+
-    `_Terimakasih_ 🙏`;
+    `   Over Due        : ${odPct}\n`+
+    (allPodLines ? `\n➫ *POD — OUTLET TIDAK BAYAR*\n${allPodLines}` : '')+
+    `\n_Terimakasih_ 🙏`;
 
   showWAPreview('waSpvWrap', teks);
 }
