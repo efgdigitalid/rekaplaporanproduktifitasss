@@ -365,6 +365,45 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="stitle"><span class="dot"></span>Laporan Harian Supervisor</div>
         <div id="spvReport"></div>
         <div id="waSpvWrap"></div>
+
+        <!-- SET SIKLUS -->
+        <div class="stitle" style="margin-top:16px"><span class="dot"></span>⚙️ Set Siklus Aktif</div>
+        <div class="fcard" style="margin-bottom:14px">
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);
+            border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--orange)">
+            Siklus aktif: <strong id="siklusAktifSpv">—</strong>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="fld">
+              <label>Nama Siklus</label>
+              <input type="text" id="spvNamaSiklus" placeholder="cth: April 2026"
+                style="width:100%;background:var(--bg);border:1.5px solid var(--border);
+                  border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);
+                  font-size:13px;outline:none;margin-top:4px">
+            </div>
+            <div style="display:flex;gap:8px">
+              <div class="fld" style="flex:1">
+                <label>Tanggal Mulai</label>
+                <input type="date" id="spvMulai"
+                  style="width:100%;background:var(--bg);border:1.5px solid var(--border);
+                    border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);
+                    font-size:13px;outline:none;margin-top:4px">
+              </div>
+              <div class="fld" style="flex:1">
+                <label>Tanggal Akhir</label>
+                <input type="date" id="spvAkhir"
+                  style="width:100%;background:var(--bg);border:1.5px solid var(--border);
+                    border-radius:8px;padding:9px 12px;color:var(--text);font-family:var(--font);
+                    font-size:13px;outline:none;margin-top:4px">
+              </div>
+            </div>
+            <button onclick="simpanSiklusSpv()"
+              style="width:100%;padding:12px;background:var(--orange);color:#000;border:none;
+                border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">
+              💾 Simpan Siklus
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1180,6 +1219,8 @@ async function loadSiklus(){
     if(!d.ok) return;
     siklusAktif = d.aktif||'';
     document.getElementById('siklusAktifVal').textContent = siklusAktif||'Belum ada';
+    var elSpv = document.getElementById('siklusAktifSpv');
+    if(elSpv) elSpv.textContent = siklusAktif||'Belum ada';
 
     const sels = [document.getElementById('filterSiklus')].filter(Boolean);
     siklusCache = d.list||[];
@@ -1446,6 +1487,31 @@ function renderTargetList(targets){
 // ══════════════════════════════════════
 // SALESMAN MANAGEMENT
 // ══════════════════════════════════════
+async function simpanSiklusSpv(){
+  const nama  = document.getElementById('spvNamaSiklus').value.trim();
+  const mulai = document.getElementById('spvMulai').value;
+  const akhir = document.getElementById('spvAkhir').value;
+  if(!nama||!mulai||!akhir){ showToast('Isi semua field siklus',true); return; }
+  try{
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+      action:'set_siklus', password:pw,
+      nama_siklus:nama, tgl_mulai:mulai, tgl_akhir:akhir
+    })});
+    const d = await r.json();
+    if(d.ok){
+      showToast('✓ Siklus '+nama+' berhasil disimpan');
+      siklusAktif = nama;
+      document.getElementById('spvNamaSiklus').value='';
+      document.getElementById('spvMulai').value='';
+      document.getElementById('spvAkhir').value='';
+      // Update tampilan siklus aktif
+      var elSpv = document.getElementById('siklusAktifSpv');
+      if(elSpv) elSpv.textContent = nama;
+      loadSiklus();
+    } else { showToast(d.msg,true); }
+  }catch(e){ showToast('Koneksi gagal',true); }
+}
+
 function loadSalesmanList(){
   var wrap = document.getElementById('salesmanListWrap');
   wrap.innerHTML = '<div class="empty-st" style="padding:16px"><span class="spin-sm"></span><span style="color:var(--muted2);font-size:12px">Memuat...</span></div>';
