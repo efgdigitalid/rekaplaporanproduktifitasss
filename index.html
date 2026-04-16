@@ -8,9 +8,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0f1117;--card:#181c27;--card2:#1e2335;--border:#272d42;
+  --bg:#f5f6fa;--card:#ffffff;--card2:#f1f3f5;--border:#e0e0e0;
   --accent:#3b82f6;--green:#22c55e;--orange:#f59e0b;--red:#ef4444;
-  --yellow:#fbbf24;--text:#e8ecf4;--muted:#4a5568;--muted2:#6b7280;
+  --yellow:#fbbf24;--text:#1a1a2e;--muted:#6c757d;--muted2:#adb5bd;
   --font:'Plus Jakarta Sans',sans-serif;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
@@ -1028,10 +1028,16 @@ function renderMTDSupervisor(data, sik){
 
 // ── GENERATE WA ──
 function genWADay(){
-  const map  = latestPerKode(allDataCache);
   const tgl  = document.getElementById('filterDate').value;
   const dt   = tgl ? new Date(tgl+'T00:00:00') : new Date();
   const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  // Filter data hanya tanggal yang dipilih
+  const dataHariIni = tgl
+    ? allDataCache.filter(r => (r['Tanggal']||'').substring(0,10) === tgl)
+    : allDataCache;
+  const map  = latestPerKode(dataHariIni.length > 0 ? dataHariIni : allDataCache);
+
   const sv   = Object.values(map)[0]?.['Supervisor']||'-';
   const n    = Object.keys(map).length;
 
@@ -1083,13 +1089,20 @@ function genWADay(){
 }
 
 function genWASpv(){
-  const map  = latestPerKode(allDataCache);
   const tgl  = document.getElementById('filterDate').value;
   const dt   = tgl ? new Date(tgl+'T00:00:00') : new Date();
   const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  // Filter data hanya untuk tanggal yang dipilih → ambil terbaru per kode
+  // Ini mencegah data multi-hari dijumlahkan semua
+  const dataHariIni = tgl
+    ? allDataCache.filter(r => (r['Tanggal']||'').substring(0,10) === tgl)
+    : allDataCache;
+  const map  = latestPerKode(dataHariIni.length > 0 ? dataHariIni : allDataCache);
+
   const sv   = Object.values(map)[0]?.['Supervisor']||'-';
   const n    = Object.keys(map).length;
-  const EC_TARGET_TOTAL = EC_TGT * n; // total target EC semua salesman
+  const EC_TARGET_TOTAL = EC_TGT * n;
 
   let totSalesHi=0, totSalesMTD=0, totSalesTgtMonth=0, totSalesTgtDay=0, totSalesTgtYTD=0;
   let totODTarget=0, totODReal=0, totODValue=0;
@@ -1266,8 +1279,12 @@ async function saveSiklus(){
 function latestPerKode(data){
   const map={};
   data.forEach(r=>{
-    const k=r['Kode Salesman'];
-    if(!map[k]||new Date(r['Timestamp'])>new Date(map[k]['Timestamp'])) map[k]=r;
+    const k = r['Kode Salesman'];
+    if(!k) return;
+    // Gunakan kolom Tanggal (bukan Timestamp) untuk menentukan data terbaru
+    const tglR = (r['Tanggal']||'').substring(0,10);
+    const tglM = map[k] ? (map[k]['Tanggal']||'').substring(0,10) : '';
+    if(!map[k] || tglR > tglM) map[k] = r;
   });
   return map;
 }
