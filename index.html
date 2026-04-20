@@ -503,22 +503,26 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           <input type="number" id="tgt_item" placeholder="cth: 8">
         </div>
         <div class="fld">
-          <label>Jumlah Hari Siklus (bulan ini)</label>
-          <input type="number" id="tgt_hari" placeholder="cth: 26">
+          <label>Sales Target Month (Rp)</label>
+          <input type="number" id="tgt_sales_month" placeholder="cth: 50000000">
         </div>
         <div class="fld">
-          <label>Sales Target Month (Rp)</label>
-          <input type="number" id="tgt_sales_month" placeholder="cth: 500000000">
+          <label>Jumlah Hari Siklus</label>
+          <input type="number" id="tgt_hari" placeholder="cth: 26">
         </div>
         <div class="fld">
           <label>Target MTD Kumulatif (Rp)</label>
           <input type="number" id="tgt_mtd_kum" placeholder="cth: 100000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target pencapaian MTD bulan berjalan</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:4px">
+            Target akumulasi MTD bulan ini (digunakan salesman sebagai acuan)
+          </div>
         </div>
         <div class="fld" style="margin-bottom:0">
-          <label>Target YTD Kumulatif (Rp)</label>
+          <label>Target Growth YTD Kumulatif (Rp)</label>
           <input type="number" id="tgt_growth_ytd" placeholder="cth: 1500000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Akumulasi target dari awal tahun s/d bulan ini</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:4px">
+            Target akumulasi penjualan dari awal tahun s/d bulan ini
+          </div>
         </div>
         <!-- Preview Target Day -->
         <div id="tgtPreviewDay" style="display:none;background:rgba(245,158,11,.07);
