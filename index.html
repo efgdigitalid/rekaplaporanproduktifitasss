@@ -298,6 +298,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
       <button class="tab on"  onclick="switchTab('rekap',this)">📊 Rekap</button>
       <button class="tab"     onclick="switchTab('mtd',this)">📈 MTD</button>
       <button class="tab"     onclick="switchTab('salesman',this)">👥 Salesman</button>
+      <button class="tab"     onclick="switchTab('target',this)">🎯 Target</button>
     </div>
 
     <!-- ══════════ TAB: REKAP (By Day) ══════════ -->
@@ -502,16 +503,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           <input type="number" id="tgt_item" placeholder="cth: 8">
         </div>
         <div class="fld">
-          <label>Sales Target Month (Rp)</label>
-          <input type="number" id="tgt_sales_month" placeholder="cth: 50000000">
-        </div>
-        <div class="fld">
-          <label>Jumlah Hari Siklus</label>
+          <label>Jumlah Hari Siklus (bulan ini)</label>
           <input type="number" id="tgt_hari" placeholder="cth: 26">
         </div>
+        <div class="fld">
+          <label>Sales Target Month (Rp)</label>
+          <input type="number" id="tgt_sales_month" placeholder="cth: 500000000">
+        </div>
+        <div class="fld">
+          <label>Target MTD Kumulatif (Rp)</label>
+          <input type="number" id="tgt_mtd_kum" placeholder="cth: 100000000">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target pencapaian MTD bulan berjalan</div>
+        </div>
         <div class="fld" style="margin-bottom:0">
-          <label>OD Target / EAR (Rp)</label>
-          <input type="number" id="tgt_od" placeholder="cth: 100000000">
+          <label>Target YTD Kumulatif (Rp)</label>
+          <input type="number" id="tgt_growth_ytd" placeholder="cth: 1500000000">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Akumulasi target dari awal tahun s/d bulan ini</div>
         </div>
         <!-- Preview Target Day -->
         <div id="tgtPreviewDay" style="display:none;background:rgba(245,158,11,.07);
@@ -608,11 +615,14 @@ function doLogout(){ sessionStorage.removeItem('spv_pw'); location.reload(); }
 function switchTab(t, btn){
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  ['tabRekap','tabMTD','tabSalesman'].forEach(id=>
+  ['tabRekap','tabMTD','tabSalesman','tabTarget'].forEach(id=>
     document.getElementById(id).classList.toggle('hidden',
       id !== 'tab'+t.charAt(0).toUpperCase()+t.slice(1)));
   if(t === 'salesman') loadSalesmanList();
-  if(t === 'mtd') loadMTD(); // auto load saat klik tab MTD
+  if(t === 'mtd') loadMTD();
+  if(t === 'target'){
+    initTargetTab();
+  }
 }
 
 function setView(v, btn){
@@ -1347,7 +1357,7 @@ function initTargetTab(){
 
 function buildTgtKodeGrid(){
   const grid = document.getElementById('tgtKodeGrid');
-  if(grid.children.length > 0) return; // sudah dibuild
+  grid.innerHTML = ''; // selalu rebuild agar kode terbaru tampil
   KODE.forEach(k => {
     const b = document.createElement('button');
     b.className = 'view-btn'; b.textContent = k; b.style.fontSize = '11px';
@@ -1360,22 +1370,22 @@ function selectTgtKode(k, btn){
   selectedTgtKode = k;
   document.querySelectorAll('#tgtKodeGrid .view-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  // Pre-fill jika sudah ada target tersimpan untuk kode ini
   const existing = savedTargets.find(t => t.kode === k);
   if(existing){
     document.getElementById('tgt_ec').value          = existing.ec_target || '';
     document.getElementById('tgt_item').value        = existing.item_target || '';
     document.getElementById('tgt_sales_month').value = existing.sales_tgt_month || '';
     document.getElementById('tgt_hari').value        = existing.sales_hari_siklus || '';
-    document.getElementById('tgt_od').value          = existing.od_target || '';
+    document.getElementById('tgt_mtd_kum').value     = existing.mtd_kum_target || '';
+    document.getElementById('tgt_growth_ytd').value  = existing.growth_ytd_target || '';
     previewTargetDay();
   } else {
-    // Default values
-    document.getElementById('tgt_ec').value   = '26';
-    document.getElementById('tgt_item').value = '8';
+    document.getElementById('tgt_ec').value          = '26';
+    document.getElementById('tgt_item').value        = '8';
     document.getElementById('tgt_sales_month').value = '';
-    document.getElementById('tgt_hari').value = '';
-    document.getElementById('tgt_od').value   = '';
+    document.getElementById('tgt_hari').value        = '';
+    document.getElementById('tgt_mtd_kum').value     = '';
+    document.getElementById('tgt_growth_ytd').value  = '';
     document.getElementById('tgtPreviewDay').style.display = 'none';
   }
 }
@@ -1414,11 +1424,15 @@ async function saveTarget(){
   }
 
   try{
+    const growthYTD = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
+    const mtdKum    = parseFloat(document.getElementById('tgt_mtd_kum')?.value||0)||0;
     const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
       action:'set_target', password:pw, siklus:siklusAktif,
       kode_salesman:selectedTgtKode,
       ec_target: ec||26, item_target: item||8,
-      sales_tgt_month: month, sales_hari_siklus: hari, od_target: od||''
+      sales_tgt_month: month, sales_hari_siklus: hari,
+      mtd_kum_target:    mtdKum||'',
+      growth_ytd_target: growthYTD||''
     })});
     const d = await r.json();
     if(d.ok){
