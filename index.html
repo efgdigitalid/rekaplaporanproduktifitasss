@@ -1298,7 +1298,24 @@ function latestPerKode(data){
   });
   return map;
 }
-function parseN(s){ return parseFloat(String(s||'').replace(/[^0-9.]/g,''))||0; }
+function parseN(s){
+  var str = String(s||'').trim();
+  // Hapus karakter non-numerik kecuali titik dan koma
+  str = str.replace(/[^0-9.,]/g,'');
+  // Format Indonesia: titik = pemisah ribuan, koma = desimal
+  // Jika ada lebih dari 1 titik → format ribuan → hapus semua titik
+  var dotCount = (str.match(/\./g)||[]).length;
+  if(dotCount > 1){
+    str = str.replace(/\./g,'');
+  } else if(dotCount === 1){
+    // Cek apakah titik adalah pemisah ribuan (diikuti tepat 3 digit di akhir)
+    if(/\.\d{3}$/.test(str)){
+      str = str.replace(/\./g,'');
+    }
+  }
+  str = str.replace(/,/g,'.');
+  return parseFloat(str)||0;
+}
 function fmtAngka(n){ return Math.round(n).toLocaleString('id-ID'); }
 function fmtRp(v){ const n=parseN(v); return n?'Rp '+fmtAngka(n):''; }
 function pct(v, base){ const n=parseN(v), b=parseN(base||0); return b>0?((n/b)*100).toFixed(1)+'%':'-'; }
