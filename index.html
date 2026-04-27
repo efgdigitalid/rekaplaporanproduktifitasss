@@ -573,7 +573,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 
 <script>
 // ═══════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzuzjWtKSBAvV2euXi8X1sJOIHcisNySDQOum8KleNyYvmqKUC51FwN0iOzSJ1ncTkh/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiQm4E5tA4480gGsr4igPpb9vyfo2QTTYYp0homSLmBTazvxf5O7jy-du9oQsEBDWZ/exec';
 // ═══════════════════════════════════
 
 const KODE   = ['S005','S016','S017','S018','S019','S120','S121'];
@@ -1430,28 +1430,24 @@ function previewTargetDay(){
 async function saveTarget(){
   if(!selectedTgtKode){
     const err = document.getElementById('tgtErr');
-    err.textContent = '⚠ Pilih kode salesman dulu';
-    err.style.display = 'block';
-    setTimeout(() => err.style.display='none', 3000); return;
+    if(err){ err.textContent = '⚠ Pilih kode salesman dulu'; err.style.display = 'block'; setTimeout(() => err.style.display='none', 3000); }
+    else { showToast('⚠ Pilih kode salesman dulu', true); }
+    return;
   }
-  const ec    = document.getElementById('tgt_ec').value.trim();
-  const item  = document.getElementById('tgt_item').value.trim();
-  const month = document.getElementById('tgt_sales_month').value.trim();
-  const hari  = document.getElementById('tgt_hari').value.trim();
-  const od    = document.getElementById('tgt_od').value.trim();
+  const ec    = (document.getElementById('tgt_ec')?.value||'26').trim();
+  const item  = (document.getElementById('tgt_item')?.value||'8').trim();
+  const month = (document.getElementById('tgt_sales_month')?.value||'').trim();
+  const hari  = (document.getElementById('tgt_hari')?.value||'').trim();
 
   if(!month || !hari){
-    const err = document.getElementById('tgtErr');
-    err.textContent = '⚠ Sales Target Month dan Jumlah Hari wajib diisi';
-    err.style.display = 'block';
-    setTimeout(()=>err.style.display='none',3000); return;
+    showToast('⚠ Sales Target Month dan Jumlah Hari wajib diisi', true); return;
   }
 
   try{
     const growthYTD = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
     const mtdKum    = parseFloat(document.getElementById('tgt_mtd_kum')?.value||0)||0;
     const ytdBulan  = parseFloat(document.getElementById('tgt_ytd_bulan')?.value||0)||0;
-    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+    const payload = {
       action:'set_target', password:pw, siklus:siklusAktif,
       kode_salesman:selectedTgtKode,
       ec_target: ec||26, item_target: item||8,
@@ -1459,13 +1455,18 @@ async function saveTarget(){
       mtd_kum_target:    mtdKum||'',
       ytd_bulan_target:  ytdBulan||'',
       growth_ytd_target: growthYTD||''
-    })});
+    };
+    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)});
     const d = await r.json();
     if(d.ok){
       showToast('✓ Target ' + selectedTgtKode + ' disimpan');
       loadTargets();
-    } else { showToast(d.msg, true); }
-  }catch(e){ showToast('Koneksi gagal',true); }
+    } else {
+      showToast('❌ ' + (d.msg||'Gagal simpan'), true);
+    }
+  }catch(e){
+    showToast('Koneksi gagal: '+e.message, true);
+  }
 }
 
 async function loadTargets(){
