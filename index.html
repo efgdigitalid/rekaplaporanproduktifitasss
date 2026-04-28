@@ -1473,14 +1473,9 @@ async function loadTargets(){
   const container = document.getElementById('targetList');
   container.innerHTML = '<div class="empty-st" style="padding:16px"><span class="spin-sm"></span><span style="color:var(--muted2);font-size:12px">Memuat target...</span></div>';
   try{
-    const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
-      action:'get_rekap', password:pw, tanggal:null, siklus:siklusAktif
-    })});
-    // Gunakan endpoint berbeda: ambil semua target via GET
-    const r2 = await fetch(`${GAS_URL}?action=get_all_targets&siklus=${encodeURIComponent(siklusAktif)}&pw=${encodeURIComponent(pw)}`);
-    // Fallback: ambil dari data laporan terbaru per kode
+    const r = await fetch(`${GAS_URL}?action=get_all_targets&siklus=${encodeURIComponent(siklusAktif)}`);
     const d = await r.json();
-    renderTargetList(d.targets || []);
+    renderTargetList(d.targets || d.list || []);
   }catch(e){
     container.innerHTML='<div class="empty-st"><div class="ico">⚠️</div><p>Gagal memuat</p></div>';
   }
