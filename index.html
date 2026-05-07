@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Supervisor — EFG Digital</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -13,7 +13,7 @@
   --yellow:#fbbf24;--text:#1a1a2e;--muted:#6c757d;--muted2:#adb5bd;
   --font:'Plus Jakarta Sans',sans-serif;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;font-weight:500;min-height:100vh}
 
 /* LOGIN */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -509,21 +509,22 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
         <div class="fld">
           <label>Sales Target Month (Rp)</label>
           <input type="number" id="tgt_sales_month" placeholder="cth: 500000000">
-        </div>
-        <div class="fld">
-          <label>Target MTD Kumulatif (Rp)</label>
-          <input type="number" id="tgt_mtd_kum" placeholder="cth: 100000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target pencapaian MTD bulan berjalan</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target MTD Kum auto akumulasi dari bulan 1 s/d bulan ini</div>
         </div>
         <div class="fld">
           <label>Target YTD Bulan Ini (Rp)</label>
           <input type="number" id="tgt_ytd_bulan" placeholder="cth: 500000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target penjualan bulan ini → % Growth YTD = Sales MTD ÷ Target ini</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target bulan ini → Target YTD Kum = kolom J + kolom I otomatis</div>
+        </div>
+        <div class="fld">
+          <label>Target YTD Historis / Kolom J (Rp)</label>
+          <input type="number" id="tgt_growth_ytd" placeholder="cth: 2616095223">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Akumulasi target YTD bulan-bulan sebelumnya (diisi sekali per tahun)</div>
         </div>
         <div class="fld" style="margin-bottom:0">
-          <label>Target YTD Kumulatif (Rp)</label>
-          <input type="number" id="tgt_growth_ytd" placeholder="cth: 1500000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Akumulasi target dari awal tahun s/d bulan ini</div>
+          <label>Growth YTD Kum Historis (Rp)</label>
+          <input type="number" id="tgt_ytd_kum_historis" placeholder="cth: 1500000000">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Total Sales MTD bulan 1 s/d sebelum sistem → selanjutnya otomatis dari DATA_LAPORAN</div>
         </div>
         <!-- Preview Target Day -->
         <div id="tgtPreviewDay" style="display:none;background:rgba(245,158,11,.07);
@@ -1398,18 +1399,22 @@ function selectTgtKode(k, btn){
     document.getElementById('tgt_item').value        = existing.item_target || '';
     document.getElementById('tgt_sales_month').value = existing.sales_tgt_month || '';
     document.getElementById('tgt_hari').value        = existing.sales_hari_siklus || '';
-    document.getElementById('tgt_mtd_kum').value     = existing.mtd_kum_target || '';
     document.getElementById('tgt_ytd_bulan').value   = existing.ytd_bulan_target || '';
-    document.getElementById('tgt_growth_ytd').value  = existing.growth_ytd_target || '';
+    var elG = document.getElementById('tgt_growth_ytd');
+    if(elG) elG.value = existing.growth_ytd_target || '';
+    var elH = document.getElementById('tgt_ytd_kum_historis');
+    if(elH) elH.value = existing.ytd_kum_historis || '';
     previewTargetDay();
   } else {
     document.getElementById('tgt_ec').value          = '26';
     document.getElementById('tgt_item').value        = '8';
     document.getElementById('tgt_sales_month').value = '';
     document.getElementById('tgt_hari').value        = '';
-    document.getElementById('tgt_mtd_kum').value     = '';
     document.getElementById('tgt_ytd_bulan').value   = '';
-    document.getElementById('tgt_growth_ytd').value  = '';
+    var elG2 = document.getElementById('tgt_growth_ytd');
+    if(elG2) elG2.value = '';
+    var elH2 = document.getElementById('tgt_ytd_kum_historis');
+    if(elH2) elH2.value = '';
     document.getElementById('tgtPreviewDay').style.display = 'none';
   }
 }
@@ -1444,17 +1449,17 @@ async function saveTarget(){
   }
 
   try{
-    const growthYTD = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
-    const mtdKum    = parseFloat(document.getElementById('tgt_mtd_kum')?.value||0)||0;
-    const ytdBulan  = parseFloat(document.getElementById('tgt_ytd_bulan')?.value||0)||0;
+    const ytdBulan   = parseFloat(document.getElementById('tgt_ytd_bulan')?.value||0)||0;
+    const growthYTD  = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
+    const ytdHistoris = parseFloat(document.getElementById('tgt_ytd_kum_historis')?.value||0)||0;
     const payload = {
       action:'set_target', password:pw, siklus:siklusAktif,
       kode_salesman:selectedTgtKode,
       ec_target: ec||26, item_target: item||8,
       sales_tgt_month: month, sales_hari_siklus: hari,
-      mtd_kum_target:    mtdKum||'',
-      ytd_bulan_target:  ytdBulan||'',
-      growth_ytd_target: growthYTD||''
+      ytd_bulan_target:   ytdBulan||'',
+      growth_ytd_target:  growthYTD||'',
+      ytd_kum_historis:   ytdHistoris||''
     };
     const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)});
     const d = await r.json();
