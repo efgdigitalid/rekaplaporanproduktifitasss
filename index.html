@@ -509,7 +509,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16
         <div class="fld">
           <label>Sales Target Month (Rp)</label>
           <input type="number" id="tgt_sales_month" placeholder="cth: 500000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target MTD Kum auto akumulasi dari bulan 1 s/d bulan ini</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Target MTD Kum = Historis + akumulasi Target Month dari sheet</div>
+        </div>
+        <div class="fld">
+          <label>Target MTD Kum Historis (Rp)</label>
+          <input type="number" id="tgt_mtd_kum_historis" placeholder="cth: 2154672000">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Total Target Month bulan-bulan sebelum sistem (diisi sekali)</div>
         </div>
         <div class="fld">
           <label>Target YTD Bulan Ini (Rp)</label>
@@ -1404,6 +1409,8 @@ function selectTgtKode(k, btn){
     if(elG) elG.value = existing.growth_ytd_target || '';
     var elH = document.getElementById('tgt_ytd_kum_historis');
     if(elH) elH.value = existing.ytd_kum_historis || '';
+    var elMH = document.getElementById('tgt_mtd_kum_historis');
+    if(elMH) elMH.value = existing.mtd_kum_historis || '';
     previewTargetDay();
   } else {
     document.getElementById('tgt_ec').value          = '26';
@@ -1415,6 +1422,8 @@ function selectTgtKode(k, btn){
     if(elG2) elG2.value = '';
     var elH2 = document.getElementById('tgt_ytd_kum_historis');
     if(elH2) elH2.value = '';
+    var elMH2 = document.getElementById('tgt_mtd_kum_historis');
+    if(elMH2) elMH2.value = '';
     document.getElementById('tgtPreviewDay').style.display = 'none';
   }
 }
@@ -1449,17 +1458,19 @@ async function saveTarget(){
   }
 
   try{
-    const ytdBulan   = parseFloat(document.getElementById('tgt_ytd_bulan')?.value||0)||0;
-    const growthYTD  = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
+    const ytdBulan    = parseFloat(document.getElementById('tgt_ytd_bulan')?.value||0)||0;
+    const growthYTD   = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
     const ytdHistoris = parseFloat(document.getElementById('tgt_ytd_kum_historis')?.value||0)||0;
+    const mtdHistoris = parseFloat(document.getElementById('tgt_mtd_kum_historis')?.value||0)||0;
     const payload = {
       action:'set_target', password:pw, siklus:siklusAktif,
       kode_salesman:selectedTgtKode,
       ec_target: ec||26, item_target: item||8,
       sales_tgt_month: month, sales_hari_siklus: hari,
-      ytd_bulan_target:   ytdBulan||'',
-      growth_ytd_target:  growthYTD||'',
-      ytd_kum_historis:   ytdHistoris||''
+      ytd_bulan_target:    ytdBulan||'',
+      growth_ytd_target:   growthYTD||'',
+      ytd_kum_historis:    ytdHistoris||'',
+      mtd_kum_historis:    mtdHistoris||''
     };
     const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)});
     const d = await r.json();
