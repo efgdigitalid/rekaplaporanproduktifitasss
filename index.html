@@ -528,8 +528,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16
         </div>
         <div class="fld" style="margin-bottom:0">
           <label>Growth YTD Kum Historis (Rp)</label>
-          <input type="number" id="tgt_ytd_kum_historis" placeholder="cth: 1500000000">
-          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Total Sales MTD bulan 1 s/d sebelum sistem → selanjutnya otomatis dari DATA_LAPORAN</div>
+          <input type="number" id="tgt_ytd_kum_historis" placeholder="cth: 3125452607">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Total actual sales bulan-bulan SEBELUM sistem dipakai (diisi sekali)</div>
+        </div>
+        <div class="fld" style="margin-bottom:0;margin-top:8px">
+          <label>Bulan Mulai Laporan (yyyy-MM)</label>
+          <input type="text" id="tgt_bulan_mulai" placeholder="cth: 2026-04" maxlength="7">
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">Bulan pertama di DATA_LAPORAN — akumulasi Growth YTD Kum dimulai dari bulan ini</div>
         </div>
         <!-- Preview Target Day -->
         <div id="tgtPreviewDay" style="display:none;background:rgba(245,158,11,.07);
@@ -1409,6 +1414,8 @@ function selectTgtKode(k, btn){
     if(elG) elG.value = existing.growth_ytd_target || '';
     var elH = document.getElementById('tgt_ytd_kum_historis');
     if(elH) elH.value = existing.ytd_kum_historis || '';
+    var elBM = document.getElementById('tgt_bulan_mulai');
+    if(elBM) elBM.value = existing.bulan_mulai_laporan || '';
     var elMH = document.getElementById('tgt_mtd_kum_historis');
     if(elMH) elMH.value = existing.mtd_kum_historis || '';
     previewTargetDay();
@@ -1422,6 +1429,8 @@ function selectTgtKode(k, btn){
     if(elG2) elG2.value = '';
     var elH2 = document.getElementById('tgt_ytd_kum_historis');
     if(elH2) elH2.value = '';
+    var elBM2 = document.getElementById('tgt_bulan_mulai');
+    if(elBM2) elBM2.value = '';
     var elMH2 = document.getElementById('tgt_mtd_kum_historis');
     if(elMH2) elMH2.value = '';
     document.getElementById('tgtPreviewDay').style.display = 'none';
@@ -1460,8 +1469,9 @@ async function saveTarget(){
   try{
     const ytdBulan    = parseFloat(document.getElementById('tgt_ytd_bulan')?.value||0)||0;
     const growthYTD   = parseFloat(document.getElementById('tgt_growth_ytd')?.value||0)||0;
-    const ytdHistoris = parseFloat(document.getElementById('tgt_ytd_kum_historis')?.value||0)||0;
-    const mtdHistoris = parseFloat(document.getElementById('tgt_mtd_kum_historis')?.value||0)||0;
+    const ytdHistoris  = parseFloat(document.getElementById('tgt_ytd_kum_historis')?.value||0)||0;
+    const mtdHistoris  = parseFloat(document.getElementById('tgt_mtd_kum_historis')?.value||0)||0;
+    const bulanMulai   = (document.getElementById('tgt_bulan_mulai')?.value||'').trim();
     const payload = {
       action:'set_target', password:pw, siklus:siklusAktif,
       kode_salesman:selectedTgtKode,
@@ -1470,7 +1480,8 @@ async function saveTarget(){
       ytd_bulan_target:    ytdBulan||'',
       growth_ytd_target:   growthYTD||'',
       ytd_kum_historis:    ytdHistoris||'',
-      mtd_kum_historis:    mtdHistoris||''
+      mtd_kum_historis:    mtdHistoris||'',
+      bulan_mulai_laporan: bulanMulai||''
     };
     const r = await fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)});
     const d = await r.json();
