@@ -285,7 +285,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16
 <div class="dash" id="dash">
   <div class="topbar">
     <div class="logo">RC</div>
-    <div><h1>Dashboard Supervisor</h1><p>Rekap 7 Salesman — Real-time</p></div>
+    <div><h1>Dashboard Supervisor</h1><p>Rekap 7 Salesman — Real-time · v70</p></div>
     <div class="topbar-right">
       <span class="badge-sup">SUPERVISOR</span>
       <button class="btn-out" onclick="doLogout()">Keluar</button>
@@ -934,6 +934,7 @@ function renderSpvReport(data){
       <div class="rrow"><span class="rk">Avg Collection</span><span class="rv">${totODTarget>0?((totODReal/totODTarget)*100).toFixed(1):'-'}%</span></div>
       <button class="btn-wa" style="margin:12px 16px 14px;width:calc(100% - 32px)" onclick="genWASpv()">📋 Generate WA Supervisor</button>
       <button class="btn-wa" style="margin:0 16px 14px;width:calc(100% - 32px)" onclick="genWAPushItem()">📋 Generate WA Push Item</button>
+      <button class="btn-wa" style="margin:0 16px 14px;width:calc(100% - 32px)" onclick="genExcelSS()">📊 Generate Excel Laporan SS</button>
     </div>`;
 }
 
@@ -1279,6 +1280,209 @@ function genWAPushItem(){
     `\n\nTerimakasih`;
 
   showWAPreview('waSpvWrap', teks);
+}
+
+// ── EXCEL: LAPORAN PRODUKTIFITAS & OD SS ──
+// Urutan & nama sesuai template Excel (ubah di sini jika ada perubahan)
+const URUTAN_EXCEL = ['S005','S017','S016','S019','S120','S018','S121'];
+const NAMA_EXCEL = {
+  S005:'EWIN KUSWIRANDA', S017:'HARY ANGGARA A RANGKUTI', S016:'IQBAL RAMADAN',
+  S019:'SUYANTO', S120:'AGUS ARIAWAN', S018:'IRWANSYAH', S121:'ARIEF TEGUH PRIBADI'
+};
+
+// angka aman: nilai berbentuk tanggal (salah baca dari sheet) dianggap 0
+function numAman(v){ const t=String(v==null?'':v).trim(); return /^\d{4}-\d{2}-\d{2}/.test(t) ? 0 : parseN(t); }
+// target: data lama tersimpan dalam ribuan -> dikali 1000
+function targetRp(v){ const t=numAman(v); return (t>0 && t<1000000) ? t*1000 : t; }
+
+// Susun nilai per salesman dari laporannya + TOTAL (= jumlah seluruh salesman)
+function susunDataExcelSS(map, daftar){
+  const rows = daftar.map(k=>{
+    const r = map[k];
+    if(!r) return {kode:k, ada:false};
+    const ear = numAman(r['OD Target']), cd = numAman(r['OD Realisasi']);
+    return { kode:k, ada:true,
+      call:numAman(r['EC Call Day']),  callM:numAman(r['EC Call MTD']),
+      ec:numAman(r['EC Hi Tk']),       ecM:numAman(r['EC MTD Tk']),
+      itH:numAman(r['Item Total Hi']), itM:numAman(r['Item Total MTD']),
+      tY:targetRp(r['Sales Target YTD Month']), tM:targetRp(r['Sales Target Month']),
+      sHi:numAman(r['Sales Hi Val']),  sMTD:numAman(r['Sales MTD Val']),
+      ear:ear, cd:cd, od:(ear>0 ? Math.max(0, ear-cd) : 0) };
+  });
+  rows.forEach(x=>{ if(x.ada){ x.itHEc = x.itH>0 ? x.ec : 0; x.itMEc = x.itM>0 ? x.ecM : 0; } });
+  const tot = {call:0,callM:0,ec:0,ecM:0,itH:0,itM:0,tY:0,tM:0,sHi:0,sMTD:0,ear:0,cd:0,od:0,itHEc:0,itMEc:0};
+  rows.forEach(x=>{ if(x.ada) Object.keys(tot).forEach(f=>{ tot[f]+=x[f]; }); });
+  return {rows, tot};
+}
+
+// Persen & rata-rata (dihitung dari nilai barisnya; untuk TOTAL dari jumlah total)
+function turunanSS(x){
+  const bagi = (a,b)=> b>0 ? a/b : null;
+  return { ecP:bagi(x.ec,x.call), ecMP:bagi(x.ecM,x.callM),
+           itHAvg:bagi(x.itH,x.itHEc), itMAvg:bagi(x.itM,x.itMEc),
+           mtdP:bagi(x.sMTD,x.tM), odP:bagi(x.od,x.ear) };
+}
+
+// Bangun workbook: tabel Produktifitas + tabel OD dalam satu sheet (seperti template)
+function bangunWorkbookSS(ExcelJS, c){
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'EFG Digital';
+  const ws = wb.addWorksheet('Laporan SS', {pageSetup:{orientation:'landscape', fitToPage:true, fitToWidth:1, fitToHeight:0, paperSize:9}});
+  const n = c.rows.length;
+  const thin = {style:'thin', color:{argb:'FF000000'}};
+  const BORDER = {top:thin, left:thin, bottom:thin, right:thin};
+  const FONT = (b,sz)=>({name:'Calibri', size:sz||11, bold:!!b});
+  const CEN  = {horizontal:'center', vertical:'middle', wrapText:true};
+  const NUM='#,##0', PCT='0.0%', AVG='0.00';
+
+  const lebar = [12,34,16,9,16,16,16,10,12,10,10,10,16,16,14,16,10];  // A..Q
+  lebar.forEach((w,i)=>{ ws.getColumn(i+1).width = w; });
+
+  function judul(r, teks){
+    ws.mergeCells(r,1,r,17);
+    const ce = ws.getCell(r,1); ce.value = teks; ce.font = FONT(true,14);
+    ce.alignment = {horizontal:'center', vertical:'middle'};
+    ws.getRow(r).height = 24;
+  }
+  function hariTgl(r){
+    const a = ws.getCell(r,1), b = ws.getCell(r,2);
+    a.value = 'Hari/Tgl'; a.font = FONT(true);
+    b.value = ': '+c.tglS; b.font = FONT(true);
+  }
+  function header(r, kolom){
+    kolom.forEach((h,i)=>{ const ce = ws.getCell(r,i+1); ce.value = h; ce.font = FONT(true); ce.alignment = CEN; ce.border = BORDER; });
+    ws.getRow(r).height = 22;
+  }
+  function isi(r, col, val, fmt, bold){
+    const ce = ws.getCell(r,col);
+    if(val!==null && val!==undefined && val!=='') ce.value = val;
+    ce.font = FONT(bold); ce.alignment = CEN; ce.border = BORDER;
+    if(fmt) ce.numFmt = fmt;
+  }
+  function blokSS(r1, r2){          // kolom SS digabung vertikal
+    for(let r=r1; r<=r2; r++){ ws.getCell(r,1).border = BORDER; }
+    ws.mergeCells(r1,1,r2,1);
+    const ce = ws.getCell(r1,1); ce.value = c.ss; ce.font = FONT(true); ce.alignment = CEN;
+  }
+  function kosongBerborder(r, dari, sampai){ for(let k=dari;k<=sampai;k++) isi(r,k,null); }
+
+  /* ===== TABEL 1: PRODUKTIFITAS ===== */
+  const h1 = 3, d1 = 4, t1 = d1+n;
+  judul(1, 'LAPORAN PRODUKTIFITAS SS '+c.ss);
+  hariTgl(2);
+  header(h1, ['SS','NAMA SLM','SIKLUS','KODE','CALL','Call Mtd','EC HI','%','EC Mtd','%','Item Hi','Item Mtd','Target YTD','Target 2026','Sales hi','MTD','%']);
+  c.rows.forEach((x,i)=>{
+    const r = d1+i;
+    isi(r,2,c.nama[x.kode]||x.kode); isi(r,3,c.siklus); isi(r,4,x.kode);
+    if(x.ada){
+      const t = turunanSS(x);
+      isi(r,5,x.call,NUM); isi(r,6,x.callM,NUM); isi(r,7,x.ec,NUM); isi(r,8,t.ecP,PCT);
+      isi(r,9,x.ecM,NUM);  isi(r,10,t.ecMP,PCT);
+      isi(r,11,t.itHAvg,AVG); isi(r,12,t.itMAvg,AVG);
+      isi(r,13,x.tY||null,NUM); isi(r,14,x.tM||null,NUM);
+      isi(r,15,x.sHi,NUM); isi(r,16,x.sMTD,NUM); isi(r,17,t.mtdP,PCT);
+    } else { kosongBerborder(r,5,17); }
+  });
+  isi(t1,2,'TOTAL',null,true); isi(t1,3,null); isi(t1,4,null);
+  { const T = c.tot, t = turunanSS(T);
+    isi(t1,5,T.call,NUM,true); isi(t1,6,T.callM,NUM,true); isi(t1,7,T.ec,NUM,true); isi(t1,8,t.ecP,PCT,true);
+    isi(t1,9,T.ecM,NUM,true);  isi(t1,10,t.ecMP,PCT,true);
+    isi(t1,11,t.itHAvg,AVG,true); isi(t1,12,t.itMAvg,AVG,true);
+    isi(t1,13,T.tY,NUM,true); isi(t1,14,T.tM,NUM,true);
+    isi(t1,15,T.sHi,NUM,true); isi(t1,16,T.sMTD,NUM,true); isi(t1,17,t.mtdP,PCT,true); }
+  ws.getCell(t1,1).border = BORDER;
+  blokSS(d1, d1+n-1);
+
+  /* ===== TABEL 2: OD ===== */
+  const j2 = t1+3, hh2 = j2+2, d2 = j2+3, t2 = d2+n;
+  judul(j2, 'LAPORAN OD SS '+c.ss);
+  hariTgl(j2+1);
+  header(hh2, ['SS','NAMA SLM','SIKLUS','KODE','Ending AR','Current Debt','OD value','%']);
+  c.rows.forEach((x,i)=>{
+    const r = d2+i;
+    isi(r,2,c.nama[x.kode]||x.kode); isi(r,3,c.siklus); isi(r,4,x.kode);
+    if(x.ada){ const t = turunanSS(x);
+      isi(r,5,x.ear,NUM); isi(r,6,x.cd,NUM); isi(r,7,x.od,NUM); isi(r,8,t.odP,PCT);
+    } else { kosongBerborder(r,5,8); }
+  });
+  isi(t2,2,'TOTAL',null,true); isi(t2,3,null); isi(t2,4,null);
+  { const T = c.tot, t = turunanSS(T);
+    isi(t2,5,T.ear,NUM,true); isi(t2,6,T.cd,NUM,true); isi(t2,7,T.od,NUM,true); isi(t2,8,t.odP,PCT,true); }
+  ws.getCell(t2,1).border = BORDER;
+  blokSS(d2, d2+n-1);
+
+  return wb;
+}
+
+// Siklus untuk sebuah tanggal = siklus yang rentang tanggalnya mencakup tanggal itu
+// (jadi tanggal lama otomatis memakai siklus lamanya, bukan siklus hari ini)
+function siklusUntukTanggal(tgl){
+  for(const s of (siklusCache||[])){
+    const mulai = String(s[1]||'').substring(0,10), akhir = String(s[2]||'').substring(0,10);
+    if(mulai && akhir && tgl >= mulai && tgl <= akhir) return String(s[0]).trim();
+  }
+  return '';
+}
+// cadangan: nama siklus yang paling banyak tercatat di laporan tanggal tsb
+function siklusTerbanyak(rows){
+  const h = {};
+  rows.forEach(r=>{ const v = String(r['Siklus']||'').trim();
+    if(v && !/^\d{4}-\d{2}-\d{2}/.test(v)) h[v] = (h[v]||0)+1; });
+  const k = Object.keys(h).sort((a,b)=>h[b]-h[a]);
+  return k.length ? k[0] : '';
+}
+
+// muat library Excel (ExcelJS) sekali saja, dengan 2 sumber cadangan
+async function muatExcelJS(){
+  if(window.ExcelJS) return;
+  const sumber = ['https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js',
+                  'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'];
+  for(const src of sumber){
+    try{
+      await new Promise((ok,gagal)=>{
+        const s = document.createElement('script'); s.src = src;
+        s.onload = ok; s.onerror = ()=>gagal(new Error('x')); document.head.appendChild(s);
+      });
+      if(window.ExcelJS) return;
+    }catch(e){}
+  }
+  throw new Error('Library Excel gagal dimuat — cek koneksi internet lalu coba lagi');
+}
+
+async function genExcelSS(){
+  try{
+    // tanggal berjalan: tanggal di filter, kalau kosong = hari ini
+    const now = new Date();
+    const hariIni = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    const tgl = document.getElementById('filterDate').value || hariIni;
+    const dt  = new Date(tgl+'T00:00:00');
+    const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+    // laporan pada tanggal yang dipilih (tanggal lama pun bisa)
+    const data = allDataCache.filter(r => (r['Tanggal']||'').substring(0,10) === tgl);
+    if(!data.length){ showToast('Belum ada laporan tanggal '+tgl+' — pilih tanggalnya lalu tekan Tampilkan dulu', true); return; }
+    // siklus = siklus yang mencakup tanggal tsb
+    const sik = siklusUntukTanggal(tgl) || siklusTerbanyak(data) || String(siklusAktif||'').trim();
+
+    const daftar = URUTAN_EXCEL.concat(KODE.filter(k => URUTAN_EXCEL.indexOf(k) < 0));
+    const {rows, tot} = susunDataExcelSS(latestPerKode(data), daftar);
+
+    showToast('Menyiapkan file Excel...');
+    await muatExcelJS();
+    const wb  = bangunWorkbookSS(window.ExcelJS, {
+      rows, tot, nama:NAMA_EXCEL, ss:String(SS_NAMA).toUpperCase(),
+      siklus:sik, tglS });
+    const buf  = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Laporan_SS_'+String(SS_NAMA).toUpperCase()+'_'+tgl+'.xlsx';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    showToast('✓ Excel dibuat — cek folder Download');
+  }catch(e){
+    showToast('Gagal membuat Excel: '+e.message, true);
+  }
 }
 
 function genWAMTD(){
