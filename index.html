@@ -588,6 +588,12 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiQm4E5tA4480gGsr4igPp
 // ═══════════════════════════════════
 
 const KODE   = ['S005','S016','S017','S018','S019','S120','S121'];
+// Nama untuk laporan "Push Item" — ubah di sini jika ada perubahan nama / salesman baru
+const SS_NAMA  = 'Zulhoiri';
+const NAMA_SLM = {
+  S005:'ewin kuswiranda', S016:'Iqbal Ramadhan', S017:'Hary anggara',
+  S018:'irwansyah',       S019:'Suyanto',        S120:'Agus ariawan', S121:'Arief Teguh'
+};
 const HARI   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const EC_TGT = 26, ITEM_TGT = 8;
 
@@ -927,6 +933,7 @@ function renderSpvReport(data){
       <div class="rrow"><span class="rk">Total Realisasi/CD</span><span class="rv">Rp ${fmtAngka(totODReal)}</span></div>
       <div class="rrow"><span class="rk">Avg Collection</span><span class="rv">${totODTarget>0?((totODReal/totODTarget)*100).toFixed(1):'-'}%</span></div>
       <button class="btn-wa" style="margin:12px 16px 14px;width:calc(100% - 32px)" onclick="genWASpv()">📋 Generate WA Supervisor</button>
+      <button class="btn-wa" style="margin:0 16px 14px;width:calc(100% - 32px)" onclick="genWAPushItem()">📋 Generate WA Push Item</button>
     </div>`;
 }
 
@@ -1216,6 +1223,60 @@ function genWASpv(){
     `   Over Due        : ${odPct}\n`+
     (allPodLines ? `\n➫ *POD — OUTLET TIDAK BAYAR*\n${allPodLines}` : '')+
     `\n_Terimakasih_ 🙏`;
+
+  showWAPreview('waSpvWrap', teks);
+}
+
+// ── WA: LAPORAN BY SS PUSH ITEM ZONA BIRU PLUS > 10 ──
+function genWAPushItem(){
+  const tgl  = document.getElementById('filterDate').value;
+  const dt   = tgl ? new Date(tgl+'T00:00:00') : new Date();
+  const tglS = HARI[dt.getDay()]+', '+dt.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+  // Hanya data tanggal yang dipilih (tidak jatuh ke tanggal lain agar tidak menyesatkan)
+  const data = tgl ? allDataCache.filter(r => (r['Tanggal']||'').substring(0,10) === tgl) : allDataCache;
+  if(!data.length){ showToast('Belum ada laporan pada tanggal ini', true); return; }
+  const map = latestPerKode(data);
+
+  // angka aman: nilai berbentuk tanggal (salah baca dari sheet) dianggap 0
+  const num  = v => { const t=String(v==null?'':v).trim(); return /^\d{4}-\d{2}-\d{2}/.test(t) ? 0 : parseN(t); };
+  const koma = (v,d) => v.toFixed(d).replace('.',',');   // 6.7 -> "6,7"
+
+  let ecHi=0, ecMTD=0, itemHi=0, itemMTD=0;
+  Object.values(map).forEach(r=>{
+    ecHi     += num(r['EC Hi Tk']);
+    ecMTD    += num(r['EC MTD Tk']);
+    itemHi   += num(r['Item Total Hi']);
+    itemMTD  += num(r['Item Total MTD']);
+  });
+  const avgDay = ecHi  > 0 ? koma(itemHi/ecHi,  1) : '-';   // Rata2 Item SS  = total item ÷ EC hari ini
+  const avgMTD = ecMTD > 0 ? koma(itemMTD/ecMTD,1) : '-';   // ITEM MTD       = total item MTD ÷ EC MTD
+
+  const baris = KODE.map((k,i)=>{
+    const r = map[k];
+    let rata = '-';
+    if(r){
+      const e = num(r['EC Hi Tk']), it = num(r['Item Total Hi']);
+      if(e > 0) rata = koma(it/e,1);
+      else { const v = parseFloat(r['Item Hi Val']); if(!isNaN(v)) rata = koma(v,1); }
+    }
+    return `${i+1}. (${k})${NAMA_SLM[k] ? ' '+NAMA_SLM[k] : ''} ${rata}`;
+  });
+
+  const teks =
+    `LAPORAN BY SS PUSH ITEM ZONA BIRU PLUS > 10\n\n`+
+    `${tglS}\n`+
+    `SS : ${SS_NAMA}\n\n`+
+    `JML SLM : ${KODE.length}\n`+
+    `Total EC all SLM : ${fmtAngka(ecHi)} Toko\n`+
+    `Total EC MTD all SLM : ${fmtAngka(ecMTD)} Toko\n`+
+    `Total ITEM all SLM : ${fmtAngka(itemHi)}\n`+
+    `Total ITEM MTD All SLM : ${fmtAngka(itemMTD)}\n`+
+    `Rata2 Item SS : ${avgDay}\n`+
+    `ITEM MTD : ${avgMTD}\n\n`+
+    `Nama SLM / Rata2 ITEM\n`+
+    baris.join('\n')+
+    `\n\nTerimakasih`;
 
   showWAPreview('waSpvWrap', teks);
 }
